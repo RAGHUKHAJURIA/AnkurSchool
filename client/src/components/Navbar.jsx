@@ -1,9 +1,11 @@
 import React, { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
+import { SignInButton, SignUpButton, UserButton, useUser } from '@clerk/clerk-react'
 
 const Navbar = () => {
     const location = useLocation()
     const [isMenuOpen, setIsMenuOpen] = useState(false)
+    const { isSignedIn, user } = useUser()
 
     const toggleMenu = () => setIsMenuOpen(!isMenuOpen)
 
@@ -44,10 +46,40 @@ const Navbar = () => {
                         ))}
                     </ul>
 
-                    {/* Desktop CTA Button */}
-                    <button className="hidden md:block bg-white text-slate-800 px-4 lg:px-6 py-2 rounded-full text-sm font-semibold hover:bg-gray-100 transition-colors duration-200">
-                        Log in
-                    </button>
+                    {/* Desktop Authentication Section */}
+                    <div className="hidden md:flex items-center space-x-4">
+                        {isSignedIn ? (
+                            // Signed in: Show user info and UserButton
+                            <div className="flex items-center space-x-3">
+                                <span className="text-white text-sm font-medium">
+                                    Hello, {user?.firstName || user?.username || 'User'}
+                                </span>
+                                <UserButton
+                                    appearance={{
+                                        elements: {
+                                            avatarBox: "w-8 h-8",
+                                            userButtonPopoverCard: "bg-white",
+                                            userButtonPopoverText: "text-slate-800"
+                                        }
+                                    }}
+                                />
+                            </div>
+                        ) : (
+                            // Not signed in: Show Sign In and Sign Up buttons
+                            <>
+                                <SignInButton mode="modal">
+                                    <button className="text-gray-300 hover:text-white px-4 py-2 text-sm font-medium transition-colors duration-200">
+                                        Sign In
+                                    </button>
+                                </SignInButton>
+                                <SignUpButton mode="modal">
+                                    <button className="bg-white text-slate-800 px-4 lg:px-6 py-2 rounded-full text-sm font-semibold hover:bg-gray-100 transition-colors duration-200">
+                                        Sign Up
+                                    </button>
+                                </SignUpButton>
+                            </>
+                        )}
+                    </div>
 
                     {/* Mobile Menu Button */}
                     <button
@@ -92,11 +124,41 @@ const Navbar = () => {
                             ))}
                         </ul>
 
-                        {/* Mobile CTA Button */}
+                        {/* Mobile Authentication Section */}
                         <div className="mt-4 px-4">
-                            <button className="w-full bg-white text-slate-800 py-3 rounded-full text-sm font-semibold hover:bg-gray-100 transition-colors duration-200">
-                                Log in
-                            </button>
+                            {isSignedIn ? (
+                                // Mobile: Signed in user
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center space-x-3">
+                                        <UserButton
+                                            appearance={{
+                                                elements: {
+                                                    avatarBox: "w-8 h-8",
+                                                    userButtonPopoverCard: "bg-white",
+                                                    userButtonPopoverText: "text-slate-800"
+                                                }
+                                            }}
+                                        />
+                                        <span className="text-white text-sm font-medium">
+                                            {user?.firstName || user?.username || 'User'}
+                                        </span>
+                                    </div>
+                                </div>
+                            ) : (
+                                // Mobile: Not signed in
+                                <div className="space-y-2">
+                                    <SignInButton mode="modal">
+                                        <button className="w-full text-gray-300 hover:text-white py-3 text-sm font-medium transition-colors duration-200 border border-gray-600 rounded-full hover:border-gray-500">
+                                            Sign In
+                                        </button>
+                                    </SignInButton>
+                                    <SignUpButton mode="modal">
+                                        <button className="w-full bg-white text-slate-800 py-3 rounded-full text-sm font-semibold hover:bg-gray-100 transition-colors duration-200">
+                                            Sign Up
+                                        </button>
+                                    </SignUpButton>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

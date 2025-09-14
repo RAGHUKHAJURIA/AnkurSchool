@@ -12,36 +12,36 @@ export const uploadContentFiles = upload.fields([
 
 // Helper function to handle errors
 const handleError = (res, error) => {
-    console.error('Error:', error);
+  console.error('Error:', error);
 
-    if (error.name === 'ValidationError') {
-        return res.status(400).json({
-            success: false,
-            message: 'Validation Error',
-            errors: Object.values(error.errors).map(err => err.message)
-        });
-    }
-
-    if (error.name === 'CastError') {
-        return res.status(400).json({
-            success: false,
-            message: `Invalid ${error.path}: ${error.value}`
-        });
-    }
-
-    if (error.code === 11000) {
-        const field = Object.keys(error.keyValue)[0];
-        return res.status(409).json({
-            success: false,
-            message: `Duplicate value for ${field}: ${error.keyValue[field]}`
-        });
-    }
-
-    return res.status(500).json({
-        success: false,
-        message: 'Server Error',
-        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+  if (error.name === 'ValidationError') {
+    return res.status(400).json({
+      success: false,
+      message: 'Validation Error',
+      errors: Object.values(error.errors).map(err => err.message)
     });
+  }
+
+  if (error.name === 'CastError') {
+    return res.status(400).json({
+      success: false,
+      message: `Invalid ${error.path}: ${error.value}`
+    });
+  }
+
+  if (error.code === 11000) {
+    const field = Object.keys(error.keyValue)[0];
+    return res.status(409).json({
+      success: false,
+      message: `Duplicate value for ${field}: ${error.keyValue[field]}`
+    });
+  }
+
+  return res.status(500).json({
+    success: false,
+    message: 'Server Error',
+    error: process.env.NODE_ENV === 'development' ? error.message : undefined
+  });
 };
 
 // 
@@ -54,7 +54,7 @@ export const createContent = async (req, res) => {
     console.log('Files received:', req.files);
     const { contentType, title, body, ...otherData } = req.body;
 
-    // // Validate content type
+    // Validate content type
     // if (!['article', 'notice', 'gallery'].includes(contentType)) {
     //   return res.status(400).json({
     //     success: false,
@@ -103,24 +103,24 @@ export const createContent = async (req, res) => {
       processedData.attachments = req.files.attachments.map(file => ({
         name: file.originalname,
         fileUrl: file.path,
-        fileType: file.mimetype.startsWith('image/') ? 'image' : 
-                 file.mimetype === 'application/pdf' ? 'pdf' : 'file'
+        fileType: file.mimetype.startsWith('image/') ? 'image' :
+          file.mimetype === 'application/pdf' ? 'pdf' : 'file'
       }));
     }
 
     // Handle gallery items
     if (req.files?.galleryItems) {
       processedData.items = req.files.galleryItems.map(file => ({
-        type: file.mimetype.startsWith('image/') ? 'image' : 
-              file.mimetype.startsWith('video/') ? 'video' : 'file',
+        type: file.mimetype.startsWith('image/') ? 'image' :
+          file.mimetype.startsWith('video/') ? 'video' : 'file',
         url: file.path,
         caption: file.originalname,
         thumbnail: file.mimetype.startsWith('image/') ? file.path : null
       }));
-      
+
       // Set cover image for gallery if not provided
       if (!processedData.coverImage && req.files.galleryItems.length > 0) {
-        const firstImage = req.files.galleryItems.find(file => 
+        const firstImage = req.files.galleryItems.find(file =>
           file.mimetype.startsWith('image/')
         );
         if (firstImage) {
@@ -167,56 +167,80 @@ export const createContent = async (req, res) => {
   }
 };
 
-// // Get all content with filtering, sorting, and pagination
-// export const getAllContent = async (req, res) => {
-//     try {
-//         const {
-//             contentType,
-//             status,
-//             category,
-//             author,
-//             tags,
-//             page = 1,
-//             limit = 10,
-//             sort = '-createdAt'
-//         } = req.query;
+// Get all content with filtering, sorting, and pagination
+export const getAllContent = async (req, res) => {
+  try {
+    const {
+      contentType,
+      status,
+      category,
+      tags,
+      page = 1,
+      limit = 10,
+      sort = '-createdAt'
+    } = req.query;
 
-//         // Build filter object
-//         const filter = {};
+    // Build filter object
+    const filter = {};
 
-//         if (contentType) filter.contentType = contentType;
-//         if (status) filter.status = status;
-//         if (category) filter.category = category;
-//         // Author field has been removed from content model
-//         // if (author) filter.author = author;
-//         if (tags) filter.tags = { $in: tags.split(',') };
+    if (contentType) filter.contentType = contentType;
+    if (status) filter.status = status;
+    if (category) filter.category = category;
+    if (tags) filter.tags = { $in: tags.split(',') };
 
-//         // Count total documents matching the filter
-//         const total = await Content.countDocuments(filter);
+    // Count total documents matching the filter
+    const total = await Content.countDocuments(filter);
 
-//         // Calculate pagination
-//         const skip = (parseInt(page) - 1) * parseInt(limit);
+    // Calculate pagination
+    const skip = (parseInt(page) - 1) * parseInt(limit);
 
-//         // Execute query with pagination and sorting
-//         const content = await Content.find(filter)
-//             .sort(sort)
-//             .skip(skip)
-//             .limit(parseInt(limit));
-//         // Author field has been removed from content model, so we don't need to populate it
-//         // .populate('author', 'name email');
+    // Execute query with pagination and sorting
+    const content = await Content.find(filter)
+      .sort(sort)
+      .skip(skip)
+      .limit(parseInt(limit));
 
-//         res.status(200).json({
-//             success: true,
-//             count: content.length,
-//             total,
-//             totalPages: Math.ceil(total / parseInt(limit)),
-//             currentPage: parseInt(page),
-//             data: content
-//         });
-//     } catch (error) {
-//         handleError(res, error);
-//     }
-// };
+    res.status(200).json({
+      success: true,
+      count: content.length,
+      total,
+      totalPages: Math.ceil(total / parseInt(limit)),
+      currentPage: parseInt(page),
+      data: content
+    });
+  } catch (error) {
+    handleError(res, error);
+  }
+};
+
+// Get content by type
+export const getContentByType = async (req, res) => {
+  try {
+    const { type } = req.params;
+
+    // Validate content type
+    if (!['article', 'notice', 'gallery'].includes(type)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid content type. Must be article, notice, or gallery'
+      });
+    }
+
+    // Build filter object
+    const filter = { contentType: type, status: 'published' };
+
+    // Get content sorted by creation date (newest first)
+    const content = await Content.find(filter).sort('-createdAt');
+
+    res.status(200).json({
+      success: true,
+      count: content.length,
+      data: content
+    });
+  } catch (error) {
+    handleError(res, error);
+  }
+};
 
 // // Get content by ID
 // export const getContentById = async (req, res) => {

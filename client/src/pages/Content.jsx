@@ -91,22 +91,28 @@ const Content = () => {
             // Replace with your actual API endpoint
             //  
 
-            const response = await axios.post('http://localhost:5000/api/content', formData, {
+            const response = await axios.post('https://ankur-school-red.vercel.app/api/content', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data'
                 }
             });
 
-            const result = await response.json();
+            // Axios returns the response data directly in response.data
+            const result = response.data;
 
-            if (response.ok) {
+            // Axios responses have status codes but not an 'ok' property
+            if (response.status >= 200 && response.status < 300) {
                 setMessage({ type: 'success', text: result.message || `${contentType} created successfully!` });
                 resetForm(contentType);
             } else {
                 setMessage({ type: 'error', text: result.message || 'Failed to create content' });
             }
         } catch (error) {
-            setMessage({ type: 'error', text: 'Network error. Please try again.' });
+            // Provide more specific error messages from the server if available
+            const errorMessage = error.response?.data?.message || 
+                               error.message || 
+                               'Network error. Please try again.';
+            setMessage({ type: 'error', text: errorMessage });
             console.error('Submit error:', error);
         } finally {
             setLoading(false);
