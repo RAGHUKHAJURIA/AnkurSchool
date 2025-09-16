@@ -17,7 +17,7 @@
 // // app.use(express.json());
 // // app.use(express.urlencoded({ extended: true }));
 // // app.use(cors());
-// // app.use('/api/students', studentRouter);
+
 // // app.use(clerkMiddleware())
 
 // // await connectDB();
@@ -29,7 +29,7 @@
 
 // // // Routes
 
-
+// // app.use('/api/students', studentRouter);
 // // app.use('/api/content', clerkMiddleware(), contentRouter);
 
 
@@ -104,8 +104,11 @@ const app = express();
 app.post("/clerk", express.raw({ type: "application/json" }), clerkWebhooks);
 
 // Middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// app.use(express.json());
+// app.use(express.urlencoded({ extended: true }));
+// In your server setup (e.g., app.js or server.js)
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(cors());
 
 // Routes

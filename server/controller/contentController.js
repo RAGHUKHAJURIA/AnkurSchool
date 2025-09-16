@@ -3,6 +3,7 @@ import { Content, Article, Notice, Gallery } from '../models/content.js';
 import multer from 'multer';
 import { upload } from '../config/cloudinary.js';
 import mongoose from 'mongoose';
+import axios from 'axios'
 
 
 // Multer middleware for handling file uploads
@@ -433,6 +434,25 @@ export const deleteContent = async (req, res) => {
     handleError(res, error);
   }
 };
+
+export const downloadFile = (fileUrl, fileName, attachmentId) => {
+  setDownloading(attachmentId);
+
+  // Convert Cloudinary image URL to raw download URL
+  let downloadUrl = fileUrl;
+
+  if (fileUrl.includes('/image/upload/')) {
+    downloadUrl = fileUrl.replace('/image/upload/', '/raw/upload/fl_attachment/');
+  }
+
+  console.log('Download URL:', downloadUrl);
+
+  // Direct download
+  window.open(downloadUrl, '_blank');
+
+  setTimeout(() => setDownloading(null), 1000);
+};
+
 
 // // Get content by type (articles, notices, or galleries)
 // export const getContentByType = async (req, res) => {
