@@ -1,11 +1,16 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import axios from 'axios';
 import { Upload, FileText, Bell, Image, Plus, X, Calendar, Tag, Users, AlertCircle } from 'lucide-react';
+import { AppContext } from '../context/AppContext';
 
 const AddActivities = () => {
     const [activeTab, setActiveTab] = useState('article');
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
+
+    const { getToken } = useContext(AppContext);
+
+
 
     // Form states
     const [articleForm, setArticleForm] = useState({
@@ -90,10 +95,13 @@ const AddActivities = () => {
         try {
             // Replace with your actual API endpoint
             //  
+            const token = await getToken();
 
             const response = await axios.post('http://localhost:5000/api/content', formData, {
                 headers: {
-                    'Content-Type': 'multipart/form-data'
+                    'Content-Type': 'multipart/form-data',
+                    Authorization: `Bearer ${token}`
+
                 }
             });
 
