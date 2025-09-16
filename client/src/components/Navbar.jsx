@@ -5,12 +5,30 @@ import { SignInButton, SignUpButton, UserButton, useUser } from '@clerk/clerk-re
 const Navbar = () => {
     const location = useLocation()
     const [isMenuOpen, setIsMenuOpen] = useState(false)
+    const [isMoreOpen, setIsMoreOpen] = useState(false)
     const { isSignedIn, user } = useUser()
 
     const toggleMenu = () => setIsMenuOpen(!isMenuOpen)
+    const toggleMore = () => setIsMoreOpen(!isMoreOpen)
+
+    // Menu items structure
+    const menuItems = [
+        { name: 'Home', path: '/' },
+        { name: 'About', path: '/about' },
+        { name: 'Contact', path: '/Contact' },
+        { name: 'Activities', path: '/activities' },
+        { name: 'Admission Section', path: '/admission-section' }
+    ]
+
+    // Dropdown items
+    const dropdownItems = [
+        { name: 'Gallery', path: '/gallery' },
+        { name: 'Notices', path: '/articles' },
+        { name: 'Articles', path: '/notice' }
+    ]
 
     return (
-        <div className="bg-slate-800 shadow-lg">
+        <div className="bg-slate-800 shadow-lg relative">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between py-4">
                     {/* Logo/School Name */}
@@ -22,14 +40,8 @@ const Navbar = () => {
                     </div>
 
                     {/* Desktop Navigation Links */}
-                    <ul className="hidden md:flex items-center space-x-6 lg:space-x-8">
-                        {[
-                            { name: 'Home', path: '/' },
-                            { name: 'About', path: '/about' },
-                            { name: 'Contact', path: '/Contact' },
-                            { name: 'Activities', path: '/activities' },
-                            { name: 'Admission Section', path: '/admission-section' }
-                        ].map((item) => (
+                    <ul className="hidden md:flex items-center space-x-4 lg:space-x-6">
+                        {menuItems.map((item) => (
                             <li key={item.name}>
                                 <Link
                                     to={item.path}
@@ -44,6 +56,57 @@ const Navbar = () => {
                                 </Link>
                             </li>
                         ))}
+                        
+                        {/* More dropdown */}
+                        <li className="relative">
+                            <button
+                                onClick={toggleMore}
+                                onMouseEnter={() => setIsMoreOpen(true)}
+                                onMouseLeave={() => setIsMoreOpen(false)}
+                                className={`
+                                    px-3 lg:px-4 py-2 text-sm font-medium transition-all duration-200 flex items-center
+                                    ${isMoreOpen || dropdownItems.some(item => location.pathname === item.path)
+                                        ? 'text-white bg-white/10 rounded-md'
+                                        : 'text-gray-300 hover:text-white hover:bg-white/5 rounded-md'}
+                                `}
+                            >
+                                More
+                                <svg 
+                                    className={`ml-1 h-4 w-4 transition-transform ${isMoreOpen ? 'rotate-180' : ''}`} 
+                                    fill="none" 
+                                    viewBox="0 0 24 24" 
+                                    stroke="currentColor"
+                                >
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+                            
+                            {/* Dropdown menu */}
+                            {isMoreOpen && (
+                                <div 
+                                    className="absolute z-10 mt-2 w-48 rounded-md shadow-lg bg-slate-800 border border-slate-700"
+                                    onMouseEnter={() => setIsMoreOpen(true)}
+                                    onMouseLeave={() => setIsMoreOpen(false)}
+                                >
+                                    <div className="py-1">
+                                        {dropdownItems.map((item) => (
+                                            <Link
+                                                key={item.name}
+                                                to={item.path}
+                                                className={`
+                                                    block px-4 py-2 text-sm transition-colors duration-200
+                                                    ${location.pathname === item.path
+                                                        ? 'text-white bg-white/10'
+                                                        : 'text-gray-300 hover:text-white hover:bg-white/5'}
+                                                `}
+                                            >
+                                                {item.name}
+                                            </Link>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </li>
                     </ul>
 
                     {/* Desktop Authentication Section */}
@@ -98,19 +161,32 @@ const Navbar = () => {
                 </div>
 
                 {/* Mobile Menu */}
-                <div className={`md:hidden transition-all duration-300 ease-in-out ${isMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0 overflow-hidden'}`}>
+                <div className={`md:hidden transition-all duration-300 ease-in-out ${isMenuOpen ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0 overflow-hidden'}`}>
                     <div className="py-4 border-t border-slate-700">
                         <ul className="space-y-2">
-                            {[
-                                { name: 'Home', path: '/' },
-                                { name: 'About', path: '/about' },
-                                { name: 'Contact', path: '/contact' },
-                                { name: 'Activities', path: '/activities' }
-                            ].map((item) => (
+                            {menuItems.map((item) => (
                                 <li key={item.name}>
                                     <Link
                                         to={item.path}
-                                        onClick={() => setIsMenuOpen(false)} // close menu on click
+                                        onClick={() => setIsMenuOpen(false)}
+                                        className={`
+                                            block w-full text-left px-4 py-3 text-base font-medium transition-all duration-200 rounded-md
+                                            ${location.pathname === item.path
+                                                ? 'text-white bg-white/10'
+                                                : 'text-gray-300 hover:text-white hover:bg-white/5'}
+                                        `}
+                                    >
+                                        {item.name}
+                                    </Link>
+                                </li>
+                            ))}
+                            
+                            {/* Mobile dropdown items */}
+                            {dropdownItems.map((item) => (
+                                <li key={item.name}>
+                                    <Link
+                                        to={item.path}
+                                        onClick={() => setIsMenuOpen(false)}
                                         className={`
                                             block w-full text-left px-4 py-3 text-base font-medium transition-all duration-200 rounded-md
                                             ${location.pathname === item.path
@@ -148,12 +224,18 @@ const Navbar = () => {
                                 // Mobile: Not signed in
                                 <div className="space-y-2">
                                     <SignInButton mode="modal">
-                                        <button className="w-full text-gray-300 hover:text-white py-3 text-sm font-medium transition-colors duration-200 border border-gray-600 rounded-full hover:border-gray-500">
+                                        <button 
+                                            className="w-full text-gray-300 hover:text-white py-3 text-sm font-medium transition-colors duration-200 border border-gray-600 rounded-full hover:border-gray-500"
+                                            onClick={() => setIsMenuOpen(false)}
+                                        >
                                             Sign In
                                         </button>
                                     </SignInButton>
                                     <SignUpButton mode="modal">
-                                        <button className="w-full bg-white text-slate-800 py-3 rounded-full text-sm font-semibold hover:bg-gray-100 transition-colors duration-200">
+                                        <button 
+                                            className="w-full bg-white text-slate-800 py-3 rounded-full text-sm font-semibold hover:bg-gray-100 transition-colors duration-200"
+                                            onClick={() => setIsMenuOpen(false)}
+                                        >
                                             Sign Up
                                         </button>
                                     </SignUpButton>

@@ -13,6 +13,8 @@ import Admin from './adminSection/Admin';
 import AddActivities from './adminSection/AddActivities';
 import ApproveSection from './adminSection/ApproveSection';
 import Payment from './adminSection/Payment';
+import StudentData from './adminSection/StudentData';
+
 
 
 

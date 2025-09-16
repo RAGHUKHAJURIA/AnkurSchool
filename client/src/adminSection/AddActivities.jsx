@@ -91,7 +91,7 @@ const AddActivities = () => {
             // Replace with your actual API endpoint
             //  
 
-            const response = await axios.post('https://ankur-school-red.vercel.app/api/content', formData, {
+            const response = await axios.post('http://localhost:5000/api/content', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data'
                 }
@@ -109,9 +109,9 @@ const AddActivities = () => {
             }
         } catch (error) {
             // Provide more specific error messages from the server if available
-            const errorMessage = error.response?.data?.message || 
-                               error.message || 
-                               'Network error. Please try again.';
+            const errorMessage = error.response?.data?.message ||
+                error.message ||
+                'Network error. Please try again.';
             setMessage({ type: 'error', text: errorMessage });
             console.error('Submit error:', error);
         } finally {
@@ -229,8 +229,8 @@ const AddActivities = () => {
                                     key={id}
                                     onClick={() => setActiveTab(id)}
                                     className={`flex items-center py-4 px-1 border-b-2 font-medium text-sm ${activeTab === id
-                                            ? 'border-blue-500 text-blue-600'
-                                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                        ? 'border-blue-500 text-blue-600'
+                                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                                         }`}
                                 >
                                     <Icon className="w-4 h-4 mr-2" />

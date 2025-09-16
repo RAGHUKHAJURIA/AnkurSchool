@@ -57,12 +57,13 @@ export const createContent = async (req, res) => {
     const { contentType, title, body, ...otherData } = req.body;
 
     // Validate content type
-    // if (!['article', 'notice', 'gallery'].includes(contentType)) {
-    //   return res.status(400).json({
-    //     success: false,
-    //     message: 'Invalid content type. Must be article, notice, or gallery'
-    //   });
-    // }
+    if (!['article', 'notice', 'gallery'].includes(contentType)) {
+      console.error('Validation errors:', validationError.errors);
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid content type. Must be article, notice, or gallery'
+      });
+    }
 
     // Generate slug from title with duplicate handling
     let slug;
@@ -283,42 +284,42 @@ export const getContentByType = async (req, res) => {
 
 export const getContentById = async (req, res) => {
   try {
-      console.log('getContentById called with params:', req.params);
-      const { id } = req.params;
+    console.log('getContentById called with params:', req.params);
+    const { id } = req.params;
 
-      // Validate ObjectId
-      if (!mongoose.Types.ObjectId.isValid(id)) {
-          console.log('Invalid ObjectId format:', id);
-          return res.status(400).json({
-              success: false,
-              message: 'Invalid content ID format'
-          });
-      }
-
-      console.log('Searching for content with ID:', id);
-      const content = await Content.findById(id);
-
-      if (!content) {
-          console.log('Content not found for ID:', id);
-          return res.status(404).json({
-              success: false,
-              message: 'Content not found'
-          });
-      }
-
-      console.log('Content found, incrementing views');
-      // Increment view count
-      content.views += 1;
-      await content.save();
-
-      console.log('Returning content:', content._id);
-      res.status(200).json({
-          success: true,
-          data: content
+    // Validate ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      console.log('Invalid ObjectId format:', id);
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid content ID format'
       });
+    }
+
+    console.log('Searching for content with ID:', id);
+    const content = await Content.findById(id);
+
+    if (!content) {
+      console.log('Content not found for ID:', id);
+      return res.status(404).json({
+        success: false,
+        message: 'Content not found'
+      });
+    }
+
+    console.log('Content found, incrementing views');
+    // Increment view count
+    content.views += 1;
+    await content.save();
+
+    console.log('Returning content:', content._id);
+    res.status(200).json({
+      success: true,
+      data: content
+    });
   } catch (error) {
-      console.error('Error in getContentById:', error);
-      handleError(res, error);
+    console.error('Error in getContentById:', error);
+    handleError(res, error);
   }
 };
 
@@ -353,85 +354,85 @@ export const getContentById = async (req, res) => {
 
 // Update content
 export const updateContent = async (req, res) => {
-    try {
-        const { id } = req.params;
+  try {
+    const { id } = req.params;
 
-        // Validate ObjectId
-        if (!mongoose.Types.ObjectId.isValid(id)) {
-            return res.status(400).json({
-                success: false,
-                message: 'Invalid content ID format'
-            });
-        }
-
-        // Generate slug from title if title is being updated
-        if (req.body.title && !req.body.slug) {
-            req.body.slug = req.body.title
-                .toLowerCase()
-                .replace(/[^\w\s]/gi, '')
-                .replace(/\s+/g, '-');
-        }
-
-        const content = await Content.findByIdAndUpdate(
-            id,
-            req.body,
-            { new: true, runValidators: true }
-        ).populate('author', 'name email');
-
-        if (!content) {
-            return res.status(404).json({
-                success: false,
-                message: 'Content not found'
-            });
-        }
-
-        res.status(200).json({
-            success: true,
-            message: 'Content updated successfully',
-            data: content
-        });
-    } catch (error) {
-        handleError(res, error);
+    // Validate ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid content ID format'
+      });
     }
+
+    // Generate slug from title if title is being updated
+    if (req.body.title && !req.body.slug) {
+      req.body.slug = req.body.title
+        .toLowerCase()
+        .replace(/[^\w\s]/gi, '')
+        .replace(/\s+/g, '-');
+    }
+
+    const content = await Content.findByIdAndUpdate(
+      id,
+      req.body,
+      { new: true, runValidators: true }
+    ).populate('author', 'name email');
+
+    if (!content) {
+      return res.status(404).json({
+        success: false,
+        message: 'Content not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Content updated successfully',
+      data: content
+    });
+  } catch (error) {
+    handleError(res, error);
+  }
 };
 
 // // Delete content
 export const deleteContent = async (req, res) => {
-    try {
-        // Check if user has permission to delete content
-        // if (!req.user || !req.user.canCreateContent()) {
-        //     return res.status(403).json({
-        //         success: false,
-        //         message: 'Permission denied. Only admin users can delete content'
-        //     });
-        // }
+  try {
+    // Check if user has permission to delete content
+    // if (!req.user || !req.user.canCreateContent()) {
+    //     return res.status(403).json({
+    //         success: false,
+    //         message: 'Permission denied. Only admin users can delete content'
+    //     });
+    // }
 
-        const { id } = req.params;
+    const { id } = req.params;
 
-        // Validate ObjectId
-        if (!mongoose.Types.ObjectId.isValid(id)) {
-            return res.status(400).json({
-                success: false,
-                message: 'Invalid content ID format'
-            });
-        }
-
-        const content = await Content.findByIdAndDelete(id);
-
-        if (!content) {
-            return res.status(404).json({
-                success: false,
-                message: 'Content not found'
-            });
-        }
-
-        res.status(200).json({
-            success: true,
-            message: 'Content deleted successfully'
-        });
-    } catch (error) {
-        handleError(res, error);
+    // Validate ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid content ID format'
+      });
     }
+
+    const content = await Content.findByIdAndDelete(id);
+
+    if (!content) {
+      return res.status(404).json({
+        success: false,
+        message: 'Content not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Content deleted successfully'
+    });
+  } catch (error) {
+    handleError(res, error);
+  }
 };
 
 // // Get content by type (articles, notices, or galleries)
