@@ -10,6 +10,8 @@ const AddActivities = () => {
 
     const { getToken } = useContext(AppContext);
 
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+
 
 
     // Form states
@@ -97,7 +99,7 @@ const AddActivities = () => {
             //  
             const token = await getToken();
 
-            const response = await axios.post('http://localhost:5000/api/content', formData, {
+            const response = await axios.post(backendUrl + '/api/content', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                     Authorization: `Bearer ${token}`

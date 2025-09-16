@@ -1,43 +1,91 @@
+// import express from 'express';
+// import cors from 'cors';
+// import dotenv from 'dotenv';
+// import connectDB from './config/mongodb.js';
+// import studentRouter from './routes/studentRoutes.js';
+// import contentRouter from './routes/contentRoutes.js';
+// import { clerkMiddleware } from '@clerk/express'
+// import { clerkWebhooks } from './controller/webhooks.js'
+
+// // Configure dotenv to load environment variables
+// dotenv.config();
+
+// const app = express();
+
+// app.post("/clerk", express.raw({ type: "application/json" }), clerkWebhooks);
+// // Middleware
+// app.use(express.json());
+// app.use(express.urlencoded({ extended: true }));
+// app.use(cors());
+// app.use('/api/students', studentRouter);
+// app.use(clerkMiddleware())
+
+// await connectDB();
+
+
+// app.get('/', (req, res) => {
+//   res.send("Home Route")
+// })
+
+// // Routes
+
+
+// app.use('/api/content', clerkMiddleware(), contentRouter);
+
+
+// const PORT = process.env.PORT || 5000
+
+// app.listen(PORT, () => {
+//   console.log(`Server is running on port ${PORT}`)
+// })
+
+
+
+
+
+
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import connectDB from './config/mongodb.js';
 import studentRouter from './routes/studentRoutes.js';
 import contentRouter from './routes/contentRoutes.js';
-import { clerkMiddleware } from '@clerk/express'
-import { clerkWebhooks } from './controller/webhooks.js'
+import { clerkMiddleware } from '@clerk/express';
+import { clerkWebhooks } from './controller/webhooks.js';
 
-// Configure dotenv to load environment variables
 dotenv.config();
 
 const app = express();
 
+// Webhook route BEFORE other middleware
 app.post("/clerk", express.raw({ type: "application/json" }), clerkWebhooks);
-// Middleware
+
+// Apply middleware in correct order
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
-app.use('/api/students', studentRouter);
-app.use(clerkMiddleware())
+app.use(clerkMiddleware()); // Apply globally BEFORE routes
 
 await connectDB();
 
-
 app.get('/', (req, res) => {
-  res.send("Home Route")
-})
+  res.send("Home Route");
+});
 
-// Routes
+// Routes (Clerk middleware already applied globally)
+app.use('/api/students', studentRouter);
+app.use('/api/content', contentRouter); // Remove clerkMiddleware() here since it's global
 
-
-app.use('/api/content', clerkMiddleware(), contentRouter);
-
-
-const PORT = process.env.PORT || 5000
+const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`)
-})
+  console.log(`Server is running on port ${PORT}`);
+});
+
+
+
+
+
 
 // import express from 'express';
 // import cors from 'cors';

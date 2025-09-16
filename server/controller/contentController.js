@@ -57,13 +57,12 @@ export const createContent = async (req, res) => {
     const { contentType, title, body, ...otherData } = req.body;
 
     // Validate content type
-    // if (!['article', 'notice', 'gallery'].includes(contentType)) {
-    //   console.error('Validation errors:', validationError.errors);
-    //   return res.status(400).json({
-    //     success: false,
-    //     message: 'Invalid content type. Must be article, notice, or gallery'
-    //   });
-    // }
+    if (!['article', 'notice', 'gallery'].includes(contentType)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid content type. Must be article, notice, or gallery'
+      });
+    }
 
     // Generate slug from title with duplicate handling
     let slug;
