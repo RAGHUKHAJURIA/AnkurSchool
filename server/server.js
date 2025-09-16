@@ -58,7 +58,6 @@ app.post("/clerk", express.raw({ type: "application/json" }), clerkWebhooks);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
-app.use(clerkMiddleware());
 
 // Routes
 app.get('/', (req, res) => {
@@ -66,6 +65,21 @@ app.get('/', (req, res) => {
 });
 app.use('/api/students', studentRouter);
 app.use('/api/content', clerkMiddleware(), contentRouter);
+
+// Connect to DB in all environments (Vercel serverless will reuse connections)
+try {
+  // Do not await here to avoid blocking cold start; mongoose handles queueing
+  connectDB();
+} catch (error) {
+  console.error('Failed to initiate MongoDB connection:', error);
+}
+
+// Basic error handler to surface errors instead of silent 500s
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err);
+  res.status(500).json({ success: false, message: 'Internal Server Error' });
+});
 
 // Connect DB and start server (for local)
 if (process.env.NODE_ENV !== "production") {
