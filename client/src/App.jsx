@@ -6,10 +6,13 @@ import About from './pages/About';
 import Contact from './pages/Contact';
 import Activities from './pages/Activities';
 import Admission from './pages/Admission';
-import Content from './pages/Content';
 import Notice from './pages/Notice';
 import Gallery from './pages/Gallery';
 import Articles from './pages/Articles';
+import Admin from './adminSection/Admin';
+import AddActivities from './adminSection/AddActivities';
+import ApproveSection from './adminSection/ApproveSection';
+import Payment from './adminSection/Payment';
 
 
 
@@ -23,10 +26,15 @@ function App() {
         <Route path='/contact' element={<Contact />} />
         <Route path='/activities' element={<Activities />} />
         <Route path='/admission-section' element={<Admission />} />
-        <Route path='/content' element={<Content />} />
         <Route path='/notice' element={<Notice />} />
         <Route path='/gallery' element={<Gallery />} />
         <Route path='/articles' element={<Articles />} />
+        // admin Routes
+        <Route path='/admin' element={<Admin />} />
+        <Route path='/admin/add-activity' element={<AddActivities />} />
+        <Route path='/admin/approve-requests' element={<ApproveSection />} />
+        <Route path='/admin/payment-section' element={<Payment />} />
+        <Route path='/admin/student-details' element={<StudentData />} />
       </Routes>
     </div>
   )

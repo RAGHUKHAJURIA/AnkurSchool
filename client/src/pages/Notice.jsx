@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
-import { Link } from 'react-router-dom'
 
 const Notice = () => {
   const [notices, setNotices] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [editingNotice, setEditingNotice] = useState(null)
+  const [formData, setFormData] = useState({ title: '', body: '' })
+  const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
     const fetchNotices = async () => {
@@ -26,6 +28,7 @@ const Notice = () => {
     }
 
     fetchNotices()
+    setIsAdmin(true) // TODO: Replace with real auth check
   }, [])
 
   const formatDate = (dateString) => {
@@ -35,6 +38,47 @@ const Notice = () => {
       month: 'long', 
       day: 'numeric' 
     })
+  }
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this notice?')) return
+
+    try {
+      await axios.delete(`http://localhost:5000/api/content/${id}`)
+      setNotices(notices.filter((notice) => notice._id !== id))
+    } catch (error) {
+      console.error('Error deleting notice:', error)
+      alert(error.response?.data?.message || 'Failed to delete notice')
+    }
+  }
+
+  const handleEdit = (notice) => {
+    setEditingNotice(notice)
+    setFormData({ title: notice.title, body: notice.body || '' })
+  }
+
+  const handleUpdate = async (e) => {
+    e.preventDefault()
+    try {
+      const response = await axios.put(
+        `http://localhost:5000/api/content/${editingNotice._id}`,
+        formData
+      )
+
+      if (response.status === 200) {
+        // Update state locally without refetch
+        setNotices(
+          notices.map((n) =>
+            n._id === editingNotice._id ? { ...n, ...formData } : n
+          )
+        )
+        setEditingNotice(null)
+        setFormData({ title: '', body: '' })
+      }
+    } catch (error) {
+      console.error('Error updating notice:', error)
+      alert(error.response?.data?.message || 'Failed to update notice')
+    }
   }
 
   return (
@@ -65,38 +109,70 @@ const Notice = () => {
                   <p className="text-gray-700">{notice.body.substring(0, 150)}...</p>
                 </div>
               )}
-              
-              {notice.attachments && notice.attachments.length > 0 && (
-                <div className="mb-3">
-                  <p className="font-medium">Attachments:</p>
-                  <ul className="list-disc pl-5">
-                    {notice.attachments.map((attachment, index) => (
-                      <li key={index}>
-                        <a 
-                          href={attachment.fileUrl} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:underline"
-                        >
-                          {attachment.name}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              
-              {notice.tags && notice.tags.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {notice.tags.map((tag, index) => (
-                    <span key={index} className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-sm">
-                      {tag}
-                    </span>
-                  ))}
+
+              {isAdmin && (
+                <div className="flex gap-2 mt-4">
+                  <button 
+                    className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded transition-colors"
+                    onClick={() => handleEdit(notice)}
+                  >
+                    Edit
+                  </button>
+                  <button 
+                    className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded transition-colors"
+                    onClick={() => handleDelete(notice._id)}
+                  >
+                    Delete
+                  </button>
                 </div>
               )}
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Edit Modal */}
+      {editingNotice && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-lg">
+            <h2 className="text-2xl font-bold mb-4">Edit Notice</h2>
+            <form onSubmit={handleUpdate}>
+              <div className="mb-4">
+                <label className="block mb-1 font-medium">Title</label>
+                <input
+                  type="text"
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  className="w-full border rounded px-3 py-2"
+                  required
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block mb-1 font-medium">Body</label>
+                <textarea
+                  value={formData.body}
+                  onChange={(e) => setFormData({ ...formData, body: e.target.value })}
+                  className="w-full border rounded px-3 py-2"
+                  rows="4"
+                />
+              </div>
+              <div className="flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setEditingNotice(null)}
+                  className="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+                >
+                  Update
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>

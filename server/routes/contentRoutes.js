@@ -1,5 +1,5 @@
 import express from 'express';
-import { createContent, uploadContentFiles, getContentByType, getAllContent } from '../controller/contentController.js';
+import { createContent, uploadContentFiles, getContentByType, getAllContent, getContentById, updateContent, deleteContent } from '../controller/contentController.js';
 
 const contentRouter = express.Router();
 
@@ -11,5 +11,11 @@ contentRouter.get('/', getAllContent);
 
 // Get content by type
 contentRouter.get('/type/:type', getContentByType);
+
+contentRouter.get('/id/:id', getContentById);
+
+contentRouter.put('/:id', updateContent);
+
+contentRouter.delete('/:id', deleteContent);
 
 export default contentRouter;
