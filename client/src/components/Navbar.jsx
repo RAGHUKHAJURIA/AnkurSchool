@@ -23,8 +23,8 @@ const Navbar = () => {
     // Dropdown items
     const dropdownItems = [
         { name: 'Gallery', path: '/gallery' },
-        { name: 'Notices', path: '/articles' },
-        { name: 'Articles', path: '/notice' }
+        { name: 'Notices', path: '/notice' },
+        { name: 'Articles', path: '/articles' }
     ]
 
     return (
@@ -57,55 +57,61 @@ const Navbar = () => {
                             </li>
                         ))}
                         
-                        {/* More dropdown */}
+                        {/* More dropdown - Fixed with a container that maintains hover state */}
                         <li className="relative">
-                            <button
-                                onClick={toggleMore}
+                            <div 
+                                className="h-full"
                                 onMouseEnter={() => setIsMoreOpen(true)}
                                 onMouseLeave={() => setIsMoreOpen(false)}
-                                className={`
-                                    px-3 lg:px-4 py-2 text-sm font-medium transition-all duration-200 flex items-center
-                                    ${isMoreOpen || dropdownItems.some(item => location.pathname === item.path)
-                                        ? 'text-white bg-white/10 rounded-md'
-                                        : 'text-gray-300 hover:text-white hover:bg-white/5 rounded-md'}
-                                `}
                             >
-                                More
-                                <svg 
-                                    className={`ml-1 h-4 w-4 transition-transform ${isMoreOpen ? 'rotate-180' : ''}`} 
-                                    fill="none" 
-                                    viewBox="0 0 24 24" 
-                                    stroke="currentColor"
+                                <button
+                                    onClick={toggleMore}
+                                    className={`
+                                        px-3 lg:px-4 py-2 text-sm font-medium transition-all duration-200 flex items-center
+                                        ${isMoreOpen || dropdownItems.some(item => location.pathname === item.path)
+                                            ? 'text-white bg-white/10 rounded-md'
+                                            : 'text-gray-300 hover:text-white hover:bg-white/5 rounded-md'}
+                                    `}
                                 >
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                </svg>
-                            </button>
-                            
-                            {/* Dropdown menu */}
-                            {isMoreOpen && (
-                                <div 
-                                    className="absolute z-10 mt-2 w-48 rounded-md shadow-lg bg-slate-800 border border-slate-700"
-                                    onMouseEnter={() => setIsMoreOpen(true)}
-                                    onMouseLeave={() => setIsMoreOpen(false)}
-                                >
-                                    <div className="py-1">
-                                        {dropdownItems.map((item) => (
-                                            <Link
-                                                key={item.name}
-                                                to={item.path}
-                                                className={`
-                                                    block px-4 py-2 text-sm transition-colors duration-200
-                                                    ${location.pathname === item.path
-                                                        ? 'text-white bg-white/10'
-                                                        : 'text-gray-300 hover:text-white hover:bg-white/5'}
-                                                `}
-                                            >
-                                                {item.name}
-                                            </Link>
-                                        ))}
+                                    More
+                                    <svg 
+                                        className={`ml-1 h-4 w-4 transition-transform ${isMoreOpen ? 'rotate-180' : ''}`} 
+                                        fill="none" 
+                                        viewBox="0 0 24 24" 
+                                        stroke="currentColor"
+                                    >
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+                                
+                                {/* Dropdown menu with a connecting element to prevent gap issues */}
+                                {isMoreOpen && (
+                                    <div 
+                                        className="absolute z-10 mt-0 w-48 rounded-md shadow-lg bg-slate-800 border border-slate-700"
+                                        style={{ top: '100%' }}
+                                    >
+                                        {/* Connector element to prevent hover gap */}
+                                        <div className="absolute top-0 left-0 right-0 h-2 -mt-2"></div>
+                                        <div className="py-1">
+                                            {dropdownItems.map((item) => (
+                                                <Link
+                                                    key={item.name}
+                                                    to={item.path}
+                                                    className={`
+                                                        block px-4 py-2 text-sm transition-colors duration-200
+                                                        ${location.pathname === item.path
+                                                            ? 'text-white bg-white/10'
+                                                            : 'text-gray-300 hover:text-white hover:bg-white/5'}
+                                                    `}
+                                                    onClick={() => setIsMoreOpen(false)}
+                                                >
+                                                    {item.name}
+                                                </Link>
+                                            ))}
+                                        </div>
                                     </div>
-                                </div>
-                            )}
+                                )}
+                            </div>
                         </li>
                     </ul>
 

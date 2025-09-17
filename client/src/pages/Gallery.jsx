@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useUser, useAuth } from '@clerk/clerk-react';
+import Navbar from '../components/Navbar';
 
 const Gallery = () => {
   const [galleries, setGalleries] = useState([]);
@@ -10,10 +11,13 @@ const Gallery = () => {
   const [editingGallery, setEditingGallery] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [activeCategory, setActiveCategory] = useState('all');
 
   // Get user and auth info from Clerk
   const { user, isLoaded: userLoaded } = useUser();
   const { getToken } = useAuth();
+
+  const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
   // Check if user is admin based on Clerk metadata
   useEffect(() => {
@@ -27,10 +31,27 @@ const Gallery = () => {
     const fetchGalleries = async () => {
       try {
         setLoading(true);
-        const response = await axios.get('http://localhost:5000/api/content/type/gallery');
+        const response = await axios.get(backendUrl + '/api/content/type/gallery');
 
+        // Check if response structure is different than expected
         if (response.status === 200) {
-          setGalleries(response.data.data);
+          // Handle different possible response structures
+          const responseData = response.data;
+
+          if (Array.isArray(responseData)) {
+            // If the API returns an array directly
+            setGalleries(responseData);
+          } else if (responseData.data && Array.isArray(responseData.data)) {
+            // If the API returns { data: [...] }
+            setGalleries(responseData.data);
+          } else if (responseData.galleries && Array.isArray(responseData.galleries)) {
+            // If the API returns { galleries: [...] }
+            setGalleries(responseData.galleries);
+          } else {
+            console.error('Unexpected API response structure:', responseData);
+            setError('Unexpected data format received from server');
+          }
+
           setError(null);
         }
       } catch (error) {
@@ -47,7 +68,7 @@ const Gallery = () => {
   const handleDelete = async (id) => {
     try {
       const token = await getToken();
-      const response = await axios.delete(`http://localhost:5000/api/content/${id}`, {
+      const response = await axios.delete(backendUrl + `/api/content/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -74,8 +95,8 @@ const Gallery = () => {
         category: formData.get('category')
       };
 
-      const response = await axios.put(
-        `http://localhost:5000/api/content/${editingGallery._id}`,
+      const response = await axios.put(backendUrl +
+        `/api/content/${editingGallery._id}`,
         updateData,
         {
           headers: {
@@ -85,8 +106,10 @@ const Gallery = () => {
       );
 
       if (response.status === 200) {
+        // Handle different response structures
+        const updatedGallery = response.data.data || response.data;
         setGalleries(galleries.map(gallery =>
-          gallery._id === editingGallery._id ? response.data.data : gallery
+          gallery._id === editingGallery._id ? updatedGallery : gallery
         ));
         setShowEditModal(false);
         setEditingGallery(null);
@@ -98,12 +121,16 @@ const Gallery = () => {
   };
 
   const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    } catch (error) {
+      return 'Invalid date';
+    }
   };
 
   const openEditModal = (gallery) => {
@@ -111,197 +138,336 @@ const Gallery = () => {
     setShowEditModal(true);
   };
 
+  // Extract unique categories for filtering
+  const categories = ['all', 'event', 'campus', 'classroom', 'sports', 'cultural', 'other'];
+  const filteredGalleries = activeCategory === 'all'
+    ? galleries
+    : galleries.filter(gallery => gallery.category === activeCategory);
+
   if (!userLoaded) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6">Photo Gallery</h1>
+    <>
+      <Navbar />
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 py-12 px-4 sm:px-6 lg:px-8">
 
-      {loading ? (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-        </div>
-      ) : error ? (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-          <p>{error}</p>
-        </div>
-      ) : galleries.length === 0 ? (
-        <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded">
-          <p>No galleries available at this time.</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {galleries.map((gallery) => (
-            <div key={gallery._id} className="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow relative">
-              {isAdmin && (
-                <div className="absolute top-2 right-2 flex space-x-2">
-                  <button
-                    onClick={() => openEditModal(gallery)}
-                    className="bg-blue-500 text-white p-2 rounded-full hover:bg-blue-600 transition-colors"
-                    title="Edit Gallery"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                    </svg>
-                  </button>
-                  <button
-                    onClick={() => setDeleteConfirm(gallery._id)}
-                    className="bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors"
-                    title="Delete Gallery"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                  </button>
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12">
+            <h1 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4 animate-fade-in-down">
+              Photo Gallery
+            </h1>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Explore our collection of memorable moments and events
+            </p>
+          </div>
+
+          {/* Category Filter */}
+          <div className="flex flex-wrap justify-center gap-2 mb-10 animate-fade-in-up">
+            {categories.map(category => (
+              <button
+                key={category}
+                onClick={() => setActiveCategory(category)}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${activeCategory === category
+                  ? 'bg-blue-500 text-white shadow-lg'
+                  : 'bg-white text-gray-700 hover:bg-gray-100 shadow-md'
+                  }`}
+              >
+                {category.charAt(0).toUpperCase() + category.slice(1)}
+              </button>
+            ))}
+          </div>
+
+          {loading ? (
+            <div className="flex justify-center items-center h-64">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+            </div>
+          ) : error ? (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6 max-w-2xl mx-auto animate-fade-in">
+              <p>{error}</p>
+            </div>
+          ) : filteredGalleries.length === 0 ? (
+            <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded-lg mb-6 max-w-2xl mx-auto animate-fade-in">
+              <p>No galleries available in this category.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in">
+              {filteredGalleries.map((gallery, index) => (
+                <div
+                  key={gallery._id}
+                  className="group bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 relative"
+                  style={{ animationDelay: `${index * 0.1}s` }}
+                >
+                  {isAdmin && (
+                    <div className="absolute top-3 right-3 flex space-x-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <button
+                        onClick={() => openEditModal(gallery)}
+                        className="bg-blue-500 text-white p-2 rounded-full hover:bg-blue-600 transition-colors shadow-md"
+                        title="Edit Gallery"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => setDeleteConfirm(gallery._id)}
+                        className="bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors shadow-md"
+                        title="Delete Gallery"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
+                  )}
+
+                  <div className="h-56 overflow-hidden relative">
+                    {gallery.coverImage ? (
+                      <img
+                        src={gallery.coverImage}
+                        alt={gallery.title || 'Gallery image'}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      />
+                    ) : (
+                      <div className="h-full bg-gradient-to-r from-blue-100 to-indigo-100 flex items-center justify-center">
+                        <span className="text-gray-500">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                        </span>
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end">
+                      <div className="p-4 text-white transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                        <span className="text-xs bg-blue-500 px-2 py-1 rounded-full">
+                          {gallery.category || 'Uncategorized'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-5">
+                    <h2 className="text-xl font-semibold mb-2 text-gray-800 line-clamp-1">{gallery.title || 'Untitled Gallery'}</h2>
+                    <p className="text-gray-500 text-sm mb-3 flex items-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      {formatDate(gallery.createdAt)}
+                    </p>
+
+                    {gallery.description && (
+                      <p className="text-gray-600 mb-4 text-sm line-clamp-2">{gallery.description}</p>
+                    )}
+
+                    <div className="flex justify-between items-center mt-4 pt-3 border-t border-gray-100">
+                      <span className="text-sm text-gray-500 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                        </svg>
+                        {gallery.items?.length || 0} items
+                      </span>
+
+                      <button
+                        className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white px-4 py-2 rounded-lg transition-all duration-300 text-sm font-medium flex items-center shadow-md hover:shadow-lg"
+                        onClick={() => window.location.href = `/gallery/${gallery.slug || gallery._id}`}
+                      >
+                        View Gallery
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Delete Confirmation Modal */}
+                  {deleteConfirm === gallery._id && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 animate-fade-in">
+                      <div className="bg-white p-6 rounded-xl max-w-md w-full transform transition-all duration-300 scale-95 animate-scale-in">
+                        <h3 className="text-xl font-semibold mb-4 text-gray-800">Confirm Delete</h3>
+                        <p className="mb-6 text-gray-600">Are you sure you want to delete this gallery? This action cannot be undone.</p>
+                        <div className="flex justify-end space-x-4">
+                          <button
+                            onClick={() => setDeleteConfirm(null)}
+                            className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={() => handleDelete(gallery._id)}
+                            className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              )}
+              ))}
+            </div>
+          )}
 
-              {gallery.coverImage ? (
-                <div className="h-48 overflow-hidden">
-                  <img
-                    src={gallery.coverImage}
-                    alt={gallery.title}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              ) : (
-                <div className="h-48 bg-gray-200 flex items-center justify-center">
-                  <span className="text-gray-500">No cover image</span>
-                </div>
-              )}
+          {/* Edit Modal */}
+          {showEditModal && editingGallery && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 animate-fade-in">
+              <div className="bg-white rounded-xl max-w-md w-full max-h-screen overflow-y-auto transform transition-all duration-300 scale-95 animate-scale-in">
+                <div className="p-6">
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-2xl font-bold text-gray-800">Edit Gallery</h2>
+                    <button
+                      onClick={() => setShowEditModal(false)}
+                      className="text-gray-500 hover:text-gray-700"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                  <form onSubmit={handleUpdate}>
+                    <div className="mb-4">
+                      <label className="block text-gray-700 mb-2 font-medium" htmlFor="title">
+                        Title
+                      </label>
+                      <input
+                        type="text"
+                        id="title"
+                        name="title"
+                        defaultValue={editingGallery.title || ''}
+                        className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                        required
+                      />
+                    </div>
 
-              <div className="p-4">
-                <h2 className="text-xl font-semibold mb-2">{gallery.title}</h2>
-                <p className="text-gray-600 mb-2">Created: {formatDate(gallery.createdAt)}</p>
+                    <div className="mb-4">
+                      <label className="block text-gray-700 mb-2 font-medium" htmlFor="description">
+                        Description
+                      </label>
+                      <textarea
+                        id="description"
+                        name="description"
+                        defaultValue={editingGallery.description || ''}
+                        className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                        rows="4"
+                      />
+                    </div>
 
-                {gallery.description && (
-                  <p className="text-gray-700 mb-3">{gallery.description.substring(0, 100)}...</p>
-                )}
+                    <div className="mb-6">
+                      <label className="block text-gray-700 mb-2 font-medium" htmlFor="category">
+                        Category
+                      </label>
+                      <select
+                        id="category"
+                        name="category"
+                        defaultValue={editingGallery.category || 'event'}
+                        className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                      >
+                        <option value="event">Event</option>
+                        <option value="campus">Campus</option>
+                        <option value="classroom">Classroom</option>
+                        <option value="sports">Sports</option>
+                        <option value="cultural">Cultural</option>
+                        <option value="other">Other</option>
+                      </select>
+                    </div>
 
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-500">
-                    {gallery.items?.length || 0} items
-                  </span>
-
-                  <button
-                    className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded transition-colors"
-                    onClick={() => window.location.href = `/gallery/${gallery.slug}`}
-                  >
-                    View Gallery
-                  </button>
-                </div>
-              </div>
-
-              {/* Delete Confirmation Modal */}
-              {deleteConfirm === gallery._id && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                  <div className="bg-white p-6 rounded-lg max-w-md w-full">
-                    <h3 className="text-xl font-semibold mb-4">Confirm Delete</h3>
-                    <p className="mb-6">Are you sure you want to delete this gallery? This action cannot be undone.</p>
                     <div className="flex justify-end space-x-4">
                       <button
-                        onClick={() => setDeleteConfirm(null)}
-                        className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100"
+                        type="button"
+                        onClick={() => setShowEditModal(false)}
+                        className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors"
                       >
                         Cancel
                       </button>
                       <button
-                        onClick={() => handleDelete(gallery._id)}
-                        className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+                        type="submit"
+                        className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
                       >
-                        Delete
+                        Update Gallery
                       </button>
                     </div>
-                  </div>
+                  </form>
                 </div>
-              )}
+              </div>
             </div>
-          ))}
+          )}
         </div>
-      )}
 
-      {/* Edit Modal */}
-      {showEditModal && editingGallery && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-md w-full max-h-screen overflow-y-auto">
-            <div className="p-6">
-              <h2 className="text-2xl font-bold mb-4">Edit Gallery</h2>
-              <form onSubmit={handleUpdate}>
-                <div className="mb-4">
-                  <label className="block text-gray-700 mb-2" htmlFor="title">
-                    Title
-                  </label>
-                  <input
-                    type="text"
-                    id="title"
-                    name="title"
-                    defaultValue={editingGallery.title}
-                    className="w-full px-3 py-2 border rounded-md"
-                    required
-                  />
-                </div>
-
-                <div className="mb-4">
-                  <label className="block text-gray-700 mb-2" htmlFor="description">
-                    Description
-                  </label>
-                  <textarea
-                    id="description"
-                    name="description"
-                    defaultValue={editingGallery.description}
-                    className="w-full px-3 py-2 border rounded-md"
-                    rows="4"
-                  />
-                </div>
-
-                <div className="mb-4">
-                  <label className="block text-gray-700 mb-2" htmlFor="category">
-                    Category
-                  </label>
-                  <select
-                    id="category"
-                    name="category"
-                    defaultValue={editingGallery.category}
-                    className="w-full px-3 py-2 border rounded-md"
-                  >
-                    <option value="event">Event</option>
-                    <option value="campus">Campus</option>
-                    <option value="classroom">Classroom</option>
-                    <option value="sports">Sports</option>
-                    <option value="cultural">Cultural</option>
-                    <option value="other">Other</option>
-                  </select>
-                </div>
-
-                <div className="flex justify-end space-x-4">
-                  <button
-                    type="button"
-                    onClick={() => setShowEditModal(false)}
-                    className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                  >
-                    Update Gallery
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+        {/* Add custom animations to CSS */}
+        <style jsx>{`
+        @keyframes fade-in-down {
+          from {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        @keyframes fade-in-up {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        @keyframes fade-in {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
+        @keyframes scale-in {
+          from {
+            transform: scale(0.95);
+            opacity: 0;
+          }
+          to {
+            transform: scale(1);
+            opacity: 1;
+          }
+        }
+        .animate-fade-in-down {
+          animation: fade-in-down 0.6s ease-out;
+        }
+        .animate-fade-in-up {
+          animation: fade-in-up 0.6s ease-out;
+        }
+        .animate-fade-in {
+          animation: fade-in 0.6s ease-out;
+        }
+        .animate-scale-in {
+          animation: scale-in 0.3s ease-out;
+        }
+        .line-clamp-1 {
+          display: -webkit-box;
+          -webkit-line-clamp: 1;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+        .line-clamp-2 {
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+      `}</style>
+      </div>
+    </>
   );
 };
 

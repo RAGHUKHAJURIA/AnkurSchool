@@ -8,6 +8,8 @@ export const AppContextProvider = (props) => {
     const { getToken } = useAuth()
     const { user } = useUser()
 
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+
     const logToken = async () => {
 
         console.log(await getToken());
@@ -22,7 +24,7 @@ export const AppContextProvider = (props) => {
     }, [user])
 
     const value = {
-        getToken
+        getToken, backendUrl
     }
 
 
