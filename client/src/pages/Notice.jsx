@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react'
 import axios from 'axios'
 import { motion, AnimatePresence } from 'framer-motion'
+import Footer from '../components/Footer'
 import {
   Edit3,
   Trash2,
@@ -20,6 +21,7 @@ import {
   ExternalLink
 } from 'lucide-react'
 import Navbar from '../components/Navbar'
+import { getFileUrl, getDownloadUrl, handleFileDownload, handleFileView, getFileIcon } from '../utils/fileUtils.jsx'
 import { AppContext } from '../context/AppContext'
 
 const Notice = () => {
@@ -206,96 +208,37 @@ const Notice = () => {
   //   }
   // }
 
-  // In your frontend handleDownloadPdf function
-  // Fixed Frontend Function
-  const handleDownloadPdf = async (fileUrl, fileName, attachmentId) => {
-    try {
-      setDownloading(attachmentId);
-
-      // Method 1: Direct download using fetch and blob
-      try {
-        console.log('Attempting to download:', fileUrl);
-
-        const response = await fetch(fileUrl, {
-          method: 'GET',
-          headers: {
-            'Accept': 'application/pdf,*/*'
-          }
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-
-        const blob = await response.blob();
-
-        // Create download link
-        const downloadUrl = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = downloadUrl;
-        link.download = fileName || 'document.pdf';
-        link.style.display = 'none';
-
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-
-        // Clean up
-        window.URL.revokeObjectURL(downloadUrl);
-
-        console.log('Download successful');
-
-      } catch (fetchError) {
-        console.log('Fetch method failed, trying alternative:', fetchError.message);
-
-        // Method 2: Simple link download
-        const link = document.createElement('a');
-        link.href = fileUrl;
-        link.download = fileName || 'document.pdf';
-        link.target = '_blank';
-        link.rel = 'noopener noreferrer';
-
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      }
-
-      setTimeout(() => setDownloading(null), 1500);
-
-    } catch (error) {
-      console.error('Download failed completely:', error);
-
-      // Final fallback - open in new tab
-      window.open(fileUrl, '_blank');
-      setDownloading(null);
-
-      // Show user-friendly message instead of alert
-      const errorMsg = 'Download failed. The file has been opened in a new tab instead.';
-      // Replace alert with your preferred notification method
-      console.log(errorMsg);
-    }
+  // Updated file handling functions using GridFS
+  const handleDownloadPdf = async (fileId, fileName, attachmentId) => {
+    await handleFileDownload(fileId, fileName, attachmentId, setDownloading);
   };
-  // Function to view file in new tab (alternative to download)
-  const handleViewFile = (fileUrl) => {
-    window.open(fileUrl, '_blank');
-  }
+
+  const handleViewFile = (fileId) => {
+    handleFileView(fileId);
+  };
 
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 px-4 py-8">
-        <div className="max-w-4xl mx-auto">
-          {/* Header */}
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 px-4 py-8">
+        <div className="max-w-6xl mx-auto">
+          {/* Hero Section */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="text-center mb-8"
+            className="text-center mb-12"
           >
-            <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 mb-2">
+            <div className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full text-white text-sm font-semibold mb-8 shadow-lg">
+              <Bell className="w-5 h-5 mr-2" />
               School Notices
+            </div>
+            <h1 className="text-5xl md:text-7xl font-bold text-slate-900 mb-6">
+              <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Notices</span> & Announcements
             </h1>
-            <p className="text-gray-600">Stay updated with the latest announcements and important information</p>
+            <p className="text-xl text-slate-600 max-w-3xl mx-auto leading-relaxed">
+              Stay updated with the latest announcements, important information, and school updates
+            </p>
           </motion.div>
 
           {/* Search and Filter */}
@@ -437,6 +380,12 @@ const Notice = () => {
                           <h3 className="text-sm font-medium text-gray-700 mb-2">Attachments:</h3>
                           <div className="space-y-2">
                             {notice.attachments.map((attachment, index) => {
+                              // Skip null/undefined attachments
+                              if (!attachment) {
+                                console.warn(`Attachment at index ${index} is null/undefined`);
+                                return null;
+                              }
+
                               const attachmentId = `${notice._id}-${index}`;
                               return (
                                 <div
@@ -444,21 +393,22 @@ const Notice = () => {
                                   className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200"
                                 >
                                   <div className="flex items-center">
-                                    {getFileIcon(attachment.fileType)}
-                                    <span className="text-sm text-gray-700 ml-2">{attachment.name}</span>
+                                    {getFileIcon(attachment.fileType || 'file')}
+                                    <span className="text-sm text-gray-700 ml-2">{attachment.name || 'Unknown file'}</span>
                                   </div>
 
                                   <div className="flex gap-2">
                                     <button
-                                      onClick={() => handleViewFile(attachment.fileUrl)}
+                                      onClick={() => attachment.fileId && handleViewFile(attachment.fileId)}
                                       className="p-1 text-blue-600 hover:text-blue-800 rounded"
                                       title="View in new tab"
+                                      disabled={!attachment.fileId}
                                     >
                                       <ExternalLink className="w-4 h-4" />
                                     </button>
                                     <button
-                                      onClick={() => handleDownloadPdf(attachment.fileUrl, attachment.name, attachmentId)}
-                                      disabled={downloading === attachmentId}
+                                      onClick={() => attachment.fileId && handleDownloadPdf(attachment.fileId, attachment.name, attachmentId)}
+                                      disabled={downloading === attachmentId || !attachment.fileId}
                                       className="p-1 text-green-600 hover:text-green-800 rounded disabled:opacity-50"
                                       title="Download file"
                                     >
@@ -637,6 +587,9 @@ const Notice = () => {
           )}
         </AnimatePresence>
       </div>
+
+      {/* Footer */}
+      <Footer />
     </>
   )
 }

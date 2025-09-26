@@ -1,62 +1,100 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { UserButton, useUser } from '@clerk/clerk-react'
+import { Menu, X, School, User, LogOut, Shield, Bell } from 'lucide-react'
+import { useAdminAuthSimple } from '../hooks/useAdminAuthSimple.jsx'
 
 const AdminNavbar = () => {
     const location = useLocation()
     const [isMenuOpen, setIsMenuOpen] = useState(false)
+    const [unreadCount, setUnreadCount] = useState(0)
     const { user } = useUser()
+    const { adminUser, isAdmin, makeAdminRequest } = useAdminAuthSimple()
 
     const toggleMenu = () => setIsMenuOpen(!isMenuOpen)
 
+    // Fetch unread message count
+    useEffect(() => {
+        const fetchUnreadCount = async () => {
+            if (isAdmin && makeAdminRequest) {
+                try {
+                    const response = await makeAdminRequest('GET', '/api/admin/messages/unread-count');
+                    if (response.data.success) {
+                        setUnreadCount(response.data.data.unreadCount || 0);
+                    }
+                } catch (error) {
+                    // Silently handle error - notification badge will not show
+                }
+            }
+        };
+
+        fetchUnreadCount();
+        // Refresh every 2 minutes to avoid rate limiting
+        const interval = setInterval(fetchUnreadCount, 120000);
+        return () => clearInterval(interval);
+    }, [isAdmin, makeAdminRequest]);
+
     return (
-        <div className="bg-slate-800 shadow-lg">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex items-center justify-between py-4">
+        <nav className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 shadow-2xl backdrop-blur-md border-b border-slate-700/50 sticky top-0 z-50">
+            <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
+                <div className="flex items-center justify-between py-3 sm:py-4">
                     {/* Logo/School Name */}
-                    <div className="flex items-center">
-                        <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-lg flex items-center justify-center mr-2 sm:mr-3">
-                            <div className="w-4 h-4 sm:w-6 sm:h-6 bg-slate-800 rounded-sm"></div>
+                    <Link to="/admin" className="flex items-center group">
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mr-3 shadow-lg group-hover:shadow-xl group-hover:scale-105 transition-all duration-300">
+                            <School className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
                         </div>
-                        <span className="text-white text-lg sm:text-xl font-semibold">Ankur School Admin</span>
-                    </div>
+                        <div className="flex flex-col">
+                            <span className="text-white text-base sm:text-lg lg:text-xl font-bold group-hover:text-blue-200 transition-colors duration-300">Ankur School</span>
+                            <span className="text-slate-300 text-xs sm:text-sm font-medium hidden sm:block">Admin Panel</span>
+                        </div>
+                    </Link>
 
                     {/* Desktop Navigation Links */}
-                    <ul className="hidden md:flex items-center space-x-6 lg:space-x-8">
+                    <ul className="hidden md:flex items-center space-x-2 lg:space-x-4">
                         {[
                             { name: 'Dashboard', path: '/admin' },
-                            { name: 'Add Activity', path: '/admin/add-activity' },
-                            { name: 'Approve Requests', path: '/admin/approve-requests' },
-                            { name: 'Payment Section', path: '/admin/payment-section' },
-                            { name: 'Student Details', path: '/admin/student-details' }
+                            { name: 'Students', path: '/admin/students' },
+                            { name: 'Payments', path: '/admin/payments' },
+                            { name: 'Requests', path: '/admin/approve' },
+                            { name: 'Activities', path: '/admin/activities' },
+                            { name: 'Messages', path: '/admin/messages', showBadge: true }
                         ].map((item) => (
                             <li key={item.name}>
                                 <Link
                                     to={item.path}
                                     className={`
-                                        px-3 lg:px-4 py-2 text-sm font-medium transition-all duration-200
+                                        admin-nav-link px-4 lg:px-5 py-2.5 text-sm font-semibold rounded-xl transition-all duration-300 ease-out relative
                                         ${location.pathname === item.path
-                                            ? 'text-white bg-white/10 rounded-md'
-                                            : 'text-gray-300 hover:text-white hover:bg-white/5 rounded-md'}
+                                            ? 'nav-active text-white bg-gradient-to-r from-blue-600 to-blue-700 shadow-lg'
+                                            : 'text-slate-300 hover:text-white hover:bg-slate-700/50 hover:shadow-md transform hover:-translate-y-0.5'}
                                     `}
                                 >
                                     {item.name}
+                                    {item.showBadge && unreadCount > 0 && (
+                                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center animate-pulse">
+                                            {unreadCount > 9 ? '9+' : unreadCount}
+                                        </span>
+                                    )}
                                 </Link>
                             </li>
                         ))}
                     </ul>
 
                     {/* Desktop User Section */}
-                    <div className="hidden md:flex items-center space-x-4">
-                        <div className="flex items-center space-x-3">
-                            <span className="text-white text-sm font-medium">
-                                Hello, {user?.firstName || user?.username || 'Admin'}
+                    <div className="hidden md:flex items-center space-x-3">
+                        <div className="flex items-center space-x-3 bg-slate-700/50 rounded-xl px-4 py-2 backdrop-blur-sm">
+                            <Shield className="w-5 h-5 text-green-400" />
+                            <span className="text-white text-sm font-semibold">
+                                {adminUser?.name || user?.firstName || user?.username || 'Admin'}
+                            </span>
+                            <span className="text-green-400 text-xs font-medium bg-green-900/30 px-2 py-1 rounded-full">
+                                ADMIN
                             </span>
                             <UserButton
                                 appearance={{
                                     elements: {
-                                        avatarBox: "w-8 h-8",
-                                        userButtonPopoverCard: "bg-white",
+                                        avatarBox: "w-8 h-8 rounded-xl",
+                                        userButtonPopoverCard: "bg-white rounded-2xl shadow-2xl",
                                         userButtonPopoverText: "text-slate-800"
                                     }
                                 }}
@@ -67,70 +105,80 @@ const AdminNavbar = () => {
                     {/* Mobile Menu Button */}
                     <button
                         onClick={toggleMenu}
-                        className="md:hidden text-white p-2 rounded-md hover:bg-white/5 transition-colors duration-200"
+                        className="md:hidden text-white p-3 rounded-xl hover:bg-slate-700/50 transition-all duration-300 ease-out"
                         aria-label="Toggle menu"
                     >
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            {isMenuOpen ? (
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            ) : (
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                            )}
-                        </svg>
+                        {isMenuOpen ? (
+                            <X className="w-6 h-6" />
+                        ) : (
+                            <Menu className="w-6 h-6" />
+                        )}
                     </button>
                 </div>
 
                 {/* Mobile Menu */}
-                <div className={`md:hidden transition-all duration-300 ease-in-out ${isMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0 overflow-hidden'}`}>
-                    <div className="py-4 border-t border-slate-700">
-                        <ul className="space-y-2">
+                <div className={`md:hidden transition-all duration-500 ease-in-out ${isMenuOpen ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0 overflow-hidden'}`}>
+                    <div className="py-6 border-t border-slate-700/50 bg-slate-800/50 backdrop-blur-md">
+                        <ul className="space-y-3">
                             {[
                                 { name: 'Dashboard', path: '/admin' },
-                                { name: 'Add Activity', path: '/admin/add-activity' },
-                                { name: 'Approve Requests', path: '/admin/approve-requests' },
-                                { name: 'Payment Section', path: '/admin/payment-section' },
-                                { name: 'Student Details', path: '/admin/student-details' }
+                                { name: 'Students', path: '/admin/students' },
+                                { name: 'Payments', path: '/admin/payments' },
+                                { name: 'Requests', path: '/admin/approve' },
+                                { name: 'Activities', path: '/admin/activities' },
+                                { name: 'Messages', path: '/admin/messages', showBadge: true }
                             ].map((item) => (
                                 <li key={item.name}>
                                     <Link
                                         to={item.path}
                                         onClick={() => setIsMenuOpen(false)}
                                         className={`
-                                            block w-full text-left px-4 py-3 text-base font-medium transition-all duration-200 rounded-md
+                                            block w-full text-left px-6 py-4 text-base font-semibold transition-all duration-300 ease-out rounded-xl relative
                                             ${location.pathname === item.path
-                                                ? 'text-white bg-white/10'
-                                                : 'text-gray-300 hover:text-white hover:bg-white/5'}
+                                                ? 'text-white bg-gradient-to-r from-blue-600 to-blue-700 shadow-lg'
+                                                : 'text-slate-300 hover:text-white hover:bg-slate-700/50 hover:translate-x-2'}
                                         `}
                                     >
                                         {item.name}
+                                        {item.showBadge && unreadCount > 0 && (
+                                            <span className="absolute top-2 right-6 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center animate-pulse">
+                                                {unreadCount > 9 ? '9+' : unreadCount}
+                                            </span>
+                                        )}
                                     </Link>
                                 </li>
                             ))}
                         </ul>
 
                         {/* Mobile User Section */}
-                        <div className="mt-4 px-4">
-                            <div className="flex items-center justify-between">
+                        <div className="mt-6 px-6">
+                            <div className="flex items-center justify-between bg-slate-700/50 rounded-xl p-4 backdrop-blur-sm">
                                 <div className="flex items-center space-x-3">
-                                    <UserButton
-                                        appearance={{
-                                            elements: {
-                                                avatarBox: "w-8 h-8",
-                                                userButtonPopoverCard: "bg-white",
-                                                userButtonPopoverText: "text-slate-800"
-                                            }
-                                        }}
-                                    />
-                                    <span className="text-white text-sm font-medium">
-                                        {user?.firstName || user?.username || 'Admin'}
-                                    </span>
+                                    <Shield className="w-5 h-5 text-green-400" />
+                                    <div className="flex flex-col">
+                                        <span className="text-white text-sm font-semibold">
+                                            {adminUser?.name || user?.firstName || user?.username || 'Admin'}
+                                        </span>
+                                        <span className="text-green-400 text-xs font-medium">
+                                            ADMIN
+                                        </span>
+                                    </div>
                                 </div>
+                                <UserButton
+                                    appearance={{
+                                        elements: {
+                                            avatarBox: "w-8 h-8 rounded-xl",
+                                            userButtonPopoverCard: "bg-white rounded-2xl shadow-2xl",
+                                            userButtonPopoverText: "text-slate-800"
+                                        }
+                                    }}
+                                />
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </nav>
     )
 }
 

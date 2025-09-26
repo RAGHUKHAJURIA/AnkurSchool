@@ -93,8 +93,21 @@ import dotenv from 'dotenv';
 import connectDB from './config/mongodb.js';
 import studentRouter from './routes/studentRoutes.js';
 import contentRouter from './routes/contentRoutes.js';
+import paymentRouter from './routes/paymentRoutes.js';
+import fileRouter from './routes/fileRoutes.js';
+import testRouter from './routes/testRoutes.js';
+import admissionRouter from './routes/admissionRoutes.js';
+import adminRouter from './routes/adminRoutes.js';
+import messageRouter from './routes/messageRoutes.js';
+import adminMessageRouter from './routes/adminMessageRoutes.js';
 import { clerkMiddleware } from '@clerk/express';
 import { clerkWebhooks } from './controller/webhooks.js';
+import {
+  requireAdminAuth,
+  adminRateLimit,
+  adminSecurityHeaders,
+  adminAccessLogger
+} from './middleware/authMiddleware.js';
 
 dotenv.config();
 
@@ -116,6 +129,29 @@ app.get('/', (req, res) => {
   res.send("Home Route");
 });
 app.use('/api/students', studentRouter);
+app.use('/api/payments', paymentRouter);
+app.use('/api/files', fileRouter);
+app.use('/api/test', testRouter);
+app.use('/api/admission', admissionRouter);
+// Public message route (contact form)
+app.use('/api/messages', messageRouter);
+// Apply strict admin authentication to all admin routes
+app.use('/api/admin',
+  adminRateLimit,           // Rate limiting
+  adminSecurityHeaders,     // Security headers
+  adminAccessLogger,        // Access logging
+  requireAdminAuth,         // Strict admin authentication
+  adminRouter
+);
+
+// Admin message routes (protected)
+app.use('/api/admin/messages',
+  adminRateLimit,           // Rate limiting
+  adminSecurityHeaders,     // Security headers
+  adminAccessLogger,        // Access logging
+  requireAdminAuth,         // Strict admin authentication
+  adminMessageRouter
+);
 
 // Apply Clerk auth only if configured (avoids 500s in local dev)
 const contentAuth = process.env.CLERK_SECRET_KEY ? clerkMiddleware() : (req, res, next) => {

@@ -79,9 +79,9 @@ const articleSchema = new mongoose.Schema({
     }
   ],
 
-  // Featured image (URL to uploaded image in storage / cloud)
+  // Featured image (GridFS file ID)
   featuredImage: {
-    type: String,
+    type: mongoose.Schema.Types.ObjectId,
     default: null
   },
 
@@ -115,11 +115,14 @@ const noticeSchema = new mongoose.Schema({
     default: null
   },
 
-  // Attachments (files, PDFs, etc.)
+  // Attachments (files, PDFs, etc.) - GridFS file IDs
   attachments: [
     {
+      fileId: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: true
+      },
       name: String,
-      fileUrl: String,
       fileType: String
     }
   ]
@@ -140,7 +143,7 @@ const gallerySchema = new mongoose.Schema({
     default: 'event'
   },
 
-  // Gallery items (photos, videos)
+  // Gallery items (photos, videos) - GridFS file IDs
   items: [
     {
       type: {
@@ -148,8 +151,8 @@ const gallerySchema = new mongoose.Schema({
         enum: ['image', 'video'],
         default: 'image'
       },
-      url: {
-        type: String,
+      fileId: {
+        type: mongoose.Schema.Types.ObjectId,
         required: true
       },
       caption: {
@@ -157,7 +160,7 @@ const gallerySchema = new mongoose.Schema({
         default: ''
       },
       thumbnail: {
-        type: String,
+        type: mongoose.Schema.Types.ObjectId,
         default: null
       }
     }
@@ -169,9 +172,9 @@ const gallerySchema = new mongoose.Schema({
     default: null
   },
 
-  // Cover image (main image for the gallery)
+  // Cover image (GridFS file ID for the gallery)
   coverImage: {
-    type: String,
+    type: mongoose.Schema.Types.ObjectId,
     default: null
   }
 });

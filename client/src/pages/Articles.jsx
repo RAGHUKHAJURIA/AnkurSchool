@@ -4,7 +4,10 @@ import { useUser, useAuth } from "@clerk/clerk-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Calendar, Edit, Trash2, Tag, Eye, Clock, User, Search, Filter } from "lucide-react";
 import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
+import ArticleModal from "../components/ArticleModal";
 import { AppContext } from "../context/AppContext";
+import { getFileUrl } from "../utils/fileUtils.jsx";
 
 const Articles = () => {
   const [articles, setArticles] = useState([]);
@@ -16,6 +19,8 @@ const Articles = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [categories, setCategories] = useState([]);
+  const [selectedArticle, setSelectedArticle] = useState(null);
+  const [showArticleModal, setShowArticleModal] = useState(false);
 
   const { user, isLoaded: userLoaded } = useUser();
   const { getToken } = useAuth();
@@ -129,23 +134,37 @@ const Articles = () => {
     }
   };
 
+  const openArticleModal = (article) => {
+    setSelectedArticle(article);
+    setShowArticleModal(true);
+  };
+
+  const closeArticleModal = () => {
+    setShowArticleModal(false);
+    setSelectedArticle(null);
+  };
+
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 px-4 py-8">
-        <div className="max-w-7xl mx-auto">
-          {/* Header */}
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          {/* Hero Section */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="text-center mb-12"
+            className="text-center mb-16"
           >
-            <h1 className="text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 mb-4">
+            <div className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full text-white text-sm font-semibold mb-8 shadow-lg">
+              <Tag className="w-5 h-5 mr-2" />
               School Articles
+            </div>
+            <h1 className="text-5xl md:text-7xl font-bold text-slate-900 mb-6">
+              <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Articles</span> & News
             </h1>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              Stay updated with the latest news, events, and announcements from our school community.
+            <p className="text-xl text-slate-600 max-w-3xl mx-auto leading-relaxed">
+              Stay updated with the latest news, events, and announcements from our school community
             </p>
           </motion.div>
 
@@ -238,7 +257,7 @@ const Articles = () => {
                     <div className="relative overflow-hidden">
                       {article.featuredImage ? (
                         <img
-                          src={article.featuredImage}
+                          src={getFileUrl(article.featuredImage)}
                           alt={article.title}
                           className="w-full h-48 object-cover transition-transform duration-500 hover:scale-105"
                         />
@@ -313,7 +332,7 @@ const Articles = () => {
                         </div>
 
                         <button
-                          onClick={() => window.location.href = `/article/${article.slug || article._id}`}
+                          onClick={() => openArticleModal(article)}
                           className="flex items-center text-blue-600 hover:text-blue-800 font-medium text-sm transition"
                         >
                           Read <Eye className="w-4 h-4 ml-1" />
@@ -365,6 +384,16 @@ const Articles = () => {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Article Modal */}
+        <ArticleModal
+          article={selectedArticle}
+          isOpen={showArticleModal}
+          onClose={closeArticleModal}
+        />
+
+        {/* Footer */}
+        <Footer />
       </div>
     </>
   );

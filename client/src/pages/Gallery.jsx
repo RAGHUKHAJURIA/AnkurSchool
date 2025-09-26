@@ -2,6 +2,10 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useUser, useAuth } from '@clerk/clerk-react';
 import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
+import GalleryModal from '../components/GalleryModal';
+import { getFileUrl } from '../utils/fileUtils.jsx';
+import { Camera, Filter, Search, Edit, Trash2, Plus, Eye, Calendar, Tag } from 'lucide-react';
 
 const Gallery = () => {
   const [galleries, setGalleries] = useState([]);
@@ -12,6 +16,8 @@ const Gallery = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [activeCategory, setActiveCategory] = useState('all');
+  const [selectedGallery, setSelectedGallery] = useState(null);
+  const [showGalleryModal, setShowGalleryModal] = useState(false);
 
   // Get user and auth info from Clerk
   const { user, isLoaded: userLoaded } = useUser();
@@ -40,12 +46,20 @@ const Gallery = () => {
 
           if (Array.isArray(responseData)) {
             // If the API returns an array directly
+            console.log('Gallery data (array):', responseData);
             setGalleries(responseData);
           } else if (responseData.data && Array.isArray(responseData.data)) {
             // If the API returns { data: [...] }
+            console.log('Gallery data:', responseData.data);
+            console.log('First gallery item:', responseData.data[0]);
+            if (responseData.data[0]) {
+              console.log('First gallery coverImage:', responseData.data[0].coverImage);
+              console.log('First gallery items:', responseData.data[0].items);
+            }
             setGalleries(responseData.data);
           } else if (responseData.galleries && Array.isArray(responseData.galleries)) {
             // If the API returns { galleries: [...] }
+            console.log('Gallery data (galleries):', responseData.galleries);
             setGalleries(responseData.galleries);
           } else {
             console.error('Unexpected API response structure:', responseData);
@@ -138,6 +152,16 @@ const Gallery = () => {
     setShowEditModal(true);
   };
 
+  const openGalleryModal = (gallery) => {
+    setSelectedGallery(gallery);
+    setShowGalleryModal(true);
+  };
+
+  const closeGalleryModal = () => {
+    setShowGalleryModal(false);
+    setSelectedGallery(null);
+  };
+
   // Extract unique categories for filtering
   const categories = ['all', 'event', 'campus', 'classroom', 'sports', 'cultural', 'other'];
   const filteredGalleries = activeCategory === 'all'
@@ -159,29 +183,34 @@ const Gallery = () => {
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 py-12 px-4 sm:px-6 lg:px-8">
-
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4 animate-fade-in-down">
-              Photo Gallery
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          {/* Hero Section */}
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full text-white text-sm font-semibold mb-8 shadow-lg animate-fade-in">
+              <Camera className="w-5 h-5 mr-2" />
+              School Gallery
+            </div>
+            <h1 className="text-5xl md:text-7xl font-bold text-slate-900 mb-6 animate-slide-up">
+              Photo <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Gallery</span>
             </h1>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Explore our collection of memorable moments and events
+            <p className="text-xl text-slate-600 max-w-3xl mx-auto leading-relaxed animate-slide-up delay-200">
+              Explore our collection of memorable moments, events, and achievements
             </p>
           </div>
 
           {/* Category Filter */}
-          <div className="flex flex-wrap justify-center gap-2 mb-10 animate-fade-in-up">
+          <div className="flex flex-wrap justify-center gap-3 mb-12 animate-slide-up delay-300">
             {categories.map(category => (
               <button
                 key={category}
                 onClick={() => setActiveCategory(category)}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${activeCategory === category
-                  ? 'bg-blue-500 text-white shadow-lg'
-                  : 'bg-white text-gray-700 hover:bg-gray-100 shadow-md'
+                className={`px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-300 ease-out flex items-center gap-2 ${activeCategory === category
+                  ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg transform -translate-y-0.5'
+                  : 'bg-white text-slate-600 hover:bg-blue-50 hover:text-blue-600 hover:shadow-md hover:transform hover:-translate-y-0.5'
                   }`}
               >
+                <Tag className="w-4 h-4" />
                 {category.charAt(0).toUpperCase() + category.slice(1)}
               </button>
             ))}
@@ -231,21 +260,44 @@ const Gallery = () => {
                   )}
 
                   <div className="h-56 overflow-hidden relative">
-                    {gallery.coverImage ? (
-                      <img
-                        src={gallery.coverImage}
-                        alt={gallery.title || 'Gallery image'}
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                      />
-                    ) : (
-                      <div className="h-full bg-gradient-to-r from-blue-100 to-indigo-100 flex items-center justify-center">
-                        <span className="text-gray-500">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                          </svg>
-                        </span>
-                      </div>
-                    )}
+                    {(() => {
+                      // Try to get cover image, fallback to first gallery item
+                      const coverImageId = gallery.coverImage || (gallery.items && gallery.items.length > 0 ? gallery.items[0].fileId : null);
+
+                      if (coverImageId) {
+                        return (
+                          <img
+                            src={getFileUrl(coverImageId)}
+                            alt={gallery.title || 'Gallery image'}
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                            onError={(e) => {
+                              console.error('Image failed to load:', e.target.src);
+                              console.error('Gallery data:', gallery);
+                              console.error('Cover image ID:', coverImageId);
+                              console.error('Generated URL:', getFileUrl(coverImageId));
+                              console.error('Gallery items:', gallery.items);
+                            }}
+                            onLoad={() => {
+                              console.log('Image loaded successfully:', getFileUrl(coverImageId));
+                            }}
+                          />
+                        );
+                      } else {
+                        return (
+                          <div className="h-full bg-gradient-to-r from-blue-100 to-indigo-100 flex items-center justify-center">
+                            <div className="text-center">
+                              <span className="text-gray-500">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                              </span>
+                              <p className="text-xs text-gray-400">No images available</p>
+                              <p className="text-xs text-gray-400">Items: {gallery.items?.length || 0}</p>
+                            </div>
+                          </div>
+                        );
+                      }
+                    })()}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end">
                       <div className="p-4 text-white transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
                         <span className="text-xs bg-blue-500 px-2 py-1 rounded-full">
@@ -278,12 +330,10 @@ const Gallery = () => {
 
                       <button
                         className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white px-4 py-2 rounded-lg transition-all duration-300 text-sm font-medium flex items-center shadow-md hover:shadow-lg"
-                        onClick={() => window.location.href = `/gallery/${gallery.slug || gallery._id}`}
+                        onClick={() => openGalleryModal(gallery)}
                       >
                         View Gallery
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                        </svg>
+                        <Eye className="h-4 w-4 ml-1" />
                       </button>
                     </div>
                   </div>
@@ -401,72 +451,17 @@ const Gallery = () => {
           )}
         </div>
 
-        {/* Add custom animations to CSS */}
-        <style jsx>{`
-        @keyframes fade-in-down {
-          from {
-            opacity: 0;
-            transform: translateY(-10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        @keyframes fade-in-up {
-          from {
-            opacity: 0;
-            transform: translateY(10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        @keyframes fade-in {
-          from {
-            opacity: 0;
-          }
-          to {
-            opacity: 1;
-          }
-        }
-        @keyframes scale-in {
-          from {
-            transform: scale(0.95);
-            opacity: 0;
-          }
-          to {
-            transform: scale(1);
-            opacity: 1;
-          }
-        }
-        .animate-fade-in-down {
-          animation: fade-in-down 0.6s ease-out;
-        }
-        .animate-fade-in-up {
-          animation: fade-in-up 0.6s ease-out;
-        }
-        .animate-fade-in {
-          animation: fade-in 0.6s ease-out;
-        }
-        .animate-scale-in {
-          animation: scale-in 0.3s ease-out;
-        }
-        .line-clamp-1 {
-          display: -webkit-box;
-          -webkit-line-clamp: 1;
-          -webkit-box-orient: vertical;
-          overflow: hidden;
-        }
-        .line-clamp-2 {
-          display: -webkit-box;
-          -webkit-line-clamp: 2;
-          -webkit-box-orient: vertical;
-          overflow: hidden;
-        }
-      `}</style>
+        {/* Gallery Modal */}
+        <GalleryModal
+          gallery={selectedGallery}
+          isOpen={showGalleryModal}
+          onClose={closeGalleryModal}
+        />
       </div>
+
+      {/* Footer */}
+      <Footer />
+    <div />
     </>
   );
 };

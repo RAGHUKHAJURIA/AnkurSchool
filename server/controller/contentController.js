@@ -1,10 +1,35 @@
 
 import { Content, Article, Notice, Gallery } from '../models/content.js';
 import multer from 'multer';
-import { upload } from '../config/cloudinary.js';
+import { uploadToGridFS, downloadFromGridFS, getFileInfo, deleteFromGridFS } from '../config/gridfs.js';
 import mongoose from 'mongoose';
 import axios from 'axios'
 
+
+// Multer configuration for content files
+const storage = multer.memoryStorage();
+
+const fileFilter = (req, file, cb) => {
+  const allowedTypes = [
+    'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp',
+    'video/mp4', 'video/avi', 'video/mov', 'video/wmv',
+    'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+  ];
+
+  if (allowedTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error('Invalid file type. Only images, videos, and PDFs are allowed.'), false);
+  }
+};
+
+const upload = multer({
+  storage: storage,
+  fileFilter: fileFilter,
+  limits: {
+    fileSize: 50 * 1024 * 1024 // 50MB limit
+  }
+});
 
 // Multer middleware for handling file uploads
 export const uploadContentFiles = upload.fields([
@@ -53,8 +78,16 @@ const handleError = (res, error) => {
 export const createContent = async (req, res) => {
   try {
 
-    console.log('Request received:', req.body);
-    console.log('Files received:', req.files);
+    console.log('=== CREATE CONTENT REQUEST ===');
+    console.log('Content type:', req.body.contentType);
+    console.log('Full request body:', JSON.stringify(req.body, null, 2));
+    console.log('Gallery items:', req.body.galleryItems);
+    console.log('Gallery items type:', typeof req.body.galleryItems);
+    console.log('Gallery items is array:', Array.isArray(req.body.galleryItems));
+    console.log('Attachments:', req.body.attachments);
+    console.log('Featured image:', req.body.featuredImage);
+    console.log('================================');
+
     const { contentType, title, body, ...otherData } = req.body;
 
     // Validate content type
@@ -96,40 +129,112 @@ export const createContent = async (req, res) => {
       contentType
     };
 
-    // Handle featured image for articles
-    if (req.files?.featuredImage) {
-      processedData.featuredImage = req.files.featuredImage[0].path;
+    // Handle featured image for articles (GridFS file ID)
+    if (req.body.featuredImage) {
+      try {
+        const fileInfo = await getFileInfo(req.body.featuredImage);
+        if (fileInfo) {
+          processedData.featuredImage = req.body.featuredImage;
+        } else {
+          console.error(`Featured image file not found: ${req.body.featuredImage}`);
+        }
+      } catch (error) {
+        console.error(`Error getting featured image info:`, error);
+      }
     }
 
-    // Handle attachments for notices
-    if (req.files?.attachments) {
-      processedData.attachments = req.files.attachments.map(file => ({
-        name: file.originalname,
-        fileUrl: file.path,
-        fileType: file.mimetype.startsWith('image/') ? 'image' :
-          file.mimetype === 'application/pdf' ? 'pdf' : 'file'
-      }));
+    // Handle attachments for notices (GridFS file IDs)
+    if (req.body.attachments) {
+      const attachmentIds = Array.isArray(req.body.attachments) ? req.body.attachments : [req.body.attachments];
+
+      // Filter out null/undefined file IDs
+      const validFileIds = attachmentIds.filter(fileId => fileId && fileId !== 'null' && fileId !== 'undefined');
+      console.log('Valid attachment IDs:', validFileIds);
+
+      if (validFileIds.length === 0) {
+        console.log('No valid attachment IDs found, skipping attachments processing');
+        processedData.attachments = [];
+      } else {
+        const attachments = [];
+        for (const fileId of validFileIds) {
+          try {
+            const fileInfo = await getFileInfo(fileId);
+            if (fileInfo) {
+              attachments.push({
+                fileId: fileId,
+                name: fileInfo.metadata?.originalName || fileInfo.filename,
+                fileType: fileInfo.metadata?.mimetype || fileInfo.contentType || 'application/pdf'
+              });
+            }
+          } catch (error) {
+            console.error(`Error getting file info for ${fileId}:`, error);
+          }
+        }
+        processedData.attachments = attachments;
+      }
     }
 
-    // Handle gallery items
-    if (req.files?.galleryItems) {
-      processedData.items = req.files.galleryItems.map(file => ({
-        type: file.mimetype.startsWith('image/') ? 'image' :
-          file.mimetype.startsWith('video/') ? 'video' : 'file',
-        url: file.path,
-        caption: file.originalname,
-        thumbnail: file.mimetype.startsWith('image/') ? file.path : null
-      }));
+    // Handle gallery items (GridFS file IDs)
+    console.log('Checking for gallery items...');
+    console.log('req.body.galleryItems exists:', !!req.body.galleryItems);
+    console.log('req.body.galleryItems value:', req.body.galleryItems);
+
+    if (req.body.galleryItems) {
+      console.log('Processing gallery items:', req.body.galleryItems);
+      const galleryItemIds = Array.isArray(req.body.galleryItems) ? req.body.galleryItems : [req.body.galleryItems];
+
+      // Filter out null/undefined file IDs
+      const validFileIds = galleryItemIds.filter(fileId => fileId && fileId !== 'null' && fileId !== 'undefined');
+      console.log('Valid gallery item IDs:', validFileIds);
+
+      if (validFileIds.length === 0) {
+        console.log('No valid file IDs found, skipping gallery items processing');
+        processedData.items = [];
+      } else {
+        const items = [];
+        for (const fileId of validFileIds) {
+          try {
+            console.log(`Getting file info for: ${fileId}`);
+            const fileInfo = await getFileInfo(fileId);
+            console.log('File info:', fileInfo);
+            if (fileInfo) {
+              const fileType = fileInfo.metadata?.mimetype || fileInfo.contentType || 'image/jpeg';
+              const item = {
+                type: fileType.startsWith('image/') ? 'image' :
+                  fileType.startsWith('video/') ? 'video' : 'file',
+                fileId: fileId,
+                caption: fileInfo.metadata?.originalName || fileInfo.filename,
+                thumbnail: fileType.startsWith('image/') ? fileId : null
+              };
+              console.log('Created gallery item:', item);
+              items.push(item);
+            } else {
+              console.log(`No file info found for fileId: ${fileId}`);
+            }
+          } catch (error) {
+            console.error(`Error getting file info for ${fileId}:`, error);
+          }
+        }
+        console.log('Final gallery items:', items);
+        processedData.items = items;
+      }
 
       // Set cover image for gallery if not provided
-      if (!processedData.coverImage && req.files.galleryItems.length > 0) {
-        const firstImage = req.files.galleryItems.find(file =>
-          file.mimetype.startsWith('image/')
-        );
+      if (!processedData.coverImage && processedData.items && processedData.items.length > 0) {
+        const firstImage = processedData.items.find(item => item.type === 'image');
         if (firstImage) {
-          processedData.coverImage = firstImage.path;
+          processedData.coverImage = firstImage.fileId;
+          console.log('Set cover image to first image:', firstImage.fileId);
+        } else {
+          processedData.coverImage = processedData.items[0].fileId; // Use first file as cover
+          console.log('Set cover image to first file:', processedData.items[0].fileId);
         }
+      } else {
+        console.log('Cover image not set - items length:', processedData.items?.length || 0, 'existing coverImage:', processedData.coverImage);
       }
+    } else {
+      console.log('No galleryItems found in request body');
+      console.log('Available keys in req.body:', Object.keys(req.body));
     }
 
     // Create the appropriate content type
@@ -157,6 +262,15 @@ export const createContent = async (req, res) => {
     }
 
     await content.save();
+
+    console.log('Content saved successfully:', {
+      id: content._id,
+      contentType: content.contentType,
+      title: content.title,
+      coverImage: content.coverImage,
+      items: content.items,
+      itemsLength: content.items?.length || 0
+    });
 
     res.status(201).json({
       success: true,
@@ -234,6 +348,18 @@ export const getContentByType = async (req, res) => {
 
     // Get content sorted by creation date (newest first)
     const content = await Content.find(filter).sort('-createdAt');
+
+    console.log(`Found ${content.length} ${type} items`);
+    if (content.length > 0) {
+      console.log('First item:', {
+        id: content[0]._id,
+        title: content[0].title,
+        contentType: content[0].contentType,
+        coverImage: content[0].coverImage,
+        items: content[0].items,
+        itemsLength: content[0].items?.length || 0
+      });
+    }
 
     res.status(200).json({
       success: true,
@@ -435,22 +561,80 @@ export const deleteContent = async (req, res) => {
   }
 };
 
-export const downloadFile = (fileUrl, fileName, attachmentId) => {
-  setDownloading(attachmentId);
+// Serve file from GridFS
+export const serveFile = async (req, res) => {
+  try {
+    const { filename } = req.params;
 
-  // Convert Cloudinary image URL to raw download URL
-  let downloadUrl = fileUrl;
+    if (!filename) {
+      return res.status(400).json({
+        success: false,
+        message: 'Filename is required'
+      });
+    }
 
-  if (fileUrl.includes('/image/upload/')) {
-    downloadUrl = fileUrl.replace('/image/upload/', '/raw/upload/fl_attachment/');
+    const fileStream = await getFileStream(filename);
+
+    // Set appropriate headers
+    fileStream.on('error', (error) => {
+      console.error('File stream error:', error);
+      return res.status(404).json({
+        success: false,
+        message: 'File not found'
+      });
+    });
+
+    // Get file info for content type
+    try {
+      const fileInfo = await getFileInfo(filename);
+      res.set({
+        'Content-Type': fileInfo.metadata?.contentType || 'application/octet-stream',
+        'Content-Disposition': `inline; filename="${fileInfo.metadata?.originalName || filename}"`
+      });
+    } catch (error) {
+      console.warn('Could not get file info:', error.message);
+    }
+
+    fileStream.pipe(res);
+  } catch (error) {
+    console.error('Serve file error:', error);
+    res.status(404).json({
+      success: false,
+      message: 'File not found'
+    });
   }
+};
 
-  console.log('Download URL:', downloadUrl);
+// Download file from GridFS
+export const downloadFile = async (req, res) => {
+  try {
+    const { filename } = req.params;
 
-  // Direct download
-  window.open(downloadUrl, '_blank');
+    if (!filename) {
+      return res.status(400).json({
+        success: false,
+        message: 'Filename is required'
+      });
+    }
 
-  setTimeout(() => setDownloading(null), 1000);
+    const fileStream = await getFileStream(filename);
+
+    // Get file info for download headers
+    const fileInfo = await getFileInfo(filename);
+
+    res.set({
+      'Content-Type': 'application/octet-stream',
+      'Content-Disposition': `attachment; filename="${fileInfo.metadata?.originalName || filename}"`
+    });
+
+    fileStream.pipe(res);
+  } catch (error) {
+    console.error('Download file error:', error);
+    res.status(404).json({
+      success: false,
+      message: 'File not found'
+    });
+  }
 };
 
 

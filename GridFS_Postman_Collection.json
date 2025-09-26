@@ -1,0 +1,224 @@
+{
+  "info": {
+    "name": "GridFS File Management API",
+    "description": "Complete collection for testing MongoDB GridFS file upload, download, and management",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "GridFS Status",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/test/status",
+          "host": ["{{base_url}}"],
+          "path": ["api", "test", "status"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Upload Single File",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "file",
+              "type": "file",
+              "src": []
+            },
+            {
+              "key": "category",
+              "value": "test",
+              "type": "text"
+            },
+            {
+              "key": "description",
+              "value": "Test file upload",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/api/test/upload",
+          "host": ["{{base_url}}"],
+          "path": ["api", "test", "upload"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Upload Multiple Files",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "files",
+              "type": "file",
+              "src": []
+            },
+            {
+              "key": "files",
+              "type": "file",
+              "src": []
+            },
+            {
+              "key": "category",
+              "value": "test_multiple",
+              "type": "text"
+            },
+            {
+              "key": "description",
+              "value": "Multiple file upload test",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/api/files/upload-multiple",
+          "host": ["{{base_url}}"],
+          "path": ["api", "files", "upload-multiple"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "List All Files",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/test/list",
+          "host": ["{{base_url}}"],
+          "path": ["api", "test", "list"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get File Info",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/files/{{file_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "files", "{{file_id}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Download File",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/test/download/{{file_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "test", "download", "{{file_id}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Delete File",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/files/{{file_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "files", "{{file_id}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create Article with File",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Test Article with GridFS File\",\n  \"slug\": \"test-article-gridfs\",\n  \"contentType\": \"article\",\n  \"body\": \"This is a test article that uses GridFS for file storage.\",\n  \"excerpt\": \"Test article with GridFS integration\",\n  \"category\": \"news\",\n  \"tags\": [\"test\", \"gridfs\", \"file-upload\"],\n  \"featuredImage\": \"{{file_id}}\",\n  \"status\": \"published\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/content/articles",
+          "host": ["{{base_url}}"],
+          "path": ["api", "content", "articles"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create Notice with Attachments",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Important Notice with Attachments\",\n  \"slug\": \"important-notice-attachments\",\n  \"contentType\": \"notice\",\n  \"body\": \"This is an important notice with file attachments stored in GridFS.\",\n  \"priority\": \"high\",\n  \"audience\": \"all\",\n  \"attachments\": [\n    {\n      \"fileId\": \"{{file_id}}\",\n      \"name\": \"Important Document\",\n      \"fileType\": \"application/pdf\"\n    }\n  ],\n  \"status\": \"published\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/content/notices",
+          "host": ["{{base_url}}"],
+          "path": ["api", "content", "notices"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create Gallery with Images",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Test Gallery with GridFS Images\",\n  \"slug\": \"test-gallery-gridfs\",\n  \"contentType\": \"gallery\",\n  \"description\": \"This is a test gallery that uses GridFS for image storage.\",\n  \"category\": \"event\",\n  \"items\": [\n    {\n      \"type\": \"image\",\n      \"fileId\": \"{{file_id}}\",\n      \"caption\": \"Test image stored in GridFS\"\n    }\n  ],\n  \"coverImage\": \"{{file_id}}\",\n  \"eventDate\": \"2024-01-15T10:00:00.000Z\",\n  \"status\": \"published\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/content/galleries",
+          "host": ["{{base_url}}"],
+          "path": ["api", "content", "galleries"]
+        }
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "file_id",
+      "value": "507f1f77bcf86cd799439011",
+      "type": "string",
+      "description": "Replace with actual file ID from upload response"
+    }
+  ]
+}
