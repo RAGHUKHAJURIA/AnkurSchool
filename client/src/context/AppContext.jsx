@@ -12,13 +12,13 @@ export const AppContextProvider = (props) => {
 
     const logToken = async () => {
 
-        console.log(await getToken());
+        // console.log(await getToken());
     }
 
     useEffect(() => {
         if (user) {
-            console.log(getToken())
-            logToken();
+            // console.log(getToken())
+            // logToken();
 
         }
     }, [user])
