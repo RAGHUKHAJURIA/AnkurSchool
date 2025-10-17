@@ -22,11 +22,15 @@ import {
 
 // Load environment variables
 dotenv.config();
+app.post("/clerk", express.raw({ type: "application/json" }), clerkWebhooks);
+
+app.use('/api/files', fileRouter);
+
 
 const app = express();
 
 // --- Clerk webhook BEFORE body parsing middleware ---
-app.post("/clerk", express.raw({ type: "application/json" }), clerkWebhooks);
+
 
 // --- Core middleware ---
 app.use(express.json({ limit: '50mb' }));
@@ -41,7 +45,7 @@ app.get('/', (req, res) => {
 // --- Main routes ---
 app.use('/api/students', studentRouter);
 app.use('/api/payments', paymentRouter);
-app.use('/api/files', fileRouter);
+
 app.use('/api/test', testRouter);
 app.use('/api/admission', admissionRouter);
 
