@@ -22,12 +22,14 @@ import {
 
 // Load environment variables
 dotenv.config();
-app.post("/clerk", express.raw({ type: "application/json" }), clerkWebhooks);
 
-app.use('/api/files', fileRouter);
 
 
 const app = express();
+
+app.post("/clerk", express.raw({ type: "application/json" }), clerkWebhooks);
+
+app.use('/api/files', fileRouter);
 
 // --- Clerk webhook BEFORE body parsing middleware ---
 
