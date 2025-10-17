@@ -25,7 +25,7 @@ const Articles = () => {
   const { user, isLoaded: userLoaded } = useUser();
   const { getToken } = useAuth();
 
-  const { backendUrl } = useContext(AppContext);
+  const  backendUrl  = 'https://ankurschool-v6d0.onrender.com'
 
   // Check if user is admin
   useEffect(() => {

@@ -13,7 +13,7 @@ const CreateAdminUser = () => {
         role: 'admin'
     });
 
-    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+     const  backendUrl  = 'https://ankurschool-v6d0.onrender.com'
 
     const handleSubmit = async (e) => {
         e.preventDefault();

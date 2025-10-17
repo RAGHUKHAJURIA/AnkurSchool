@@ -44,7 +44,7 @@ const EditStudent = ({ student, onClose, onStudentUpdated }) => {
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
 
-    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+    const backendUrl = 'https://ankurschool-v6d0.onrender.com'
 
     // Populate form with student data when component mounts
     useEffect(() => {

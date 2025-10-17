@@ -9,7 +9,7 @@ const TestAuth = () => {
     const [testResult, setTestResult] = useState(null);
     const [loading, setLoading] = useState(false);
 
-    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+    const backendUrl = 'https://ankurschool-v6d0.onrender.com'
 
     const getTokenTest = async () => {
         try {
