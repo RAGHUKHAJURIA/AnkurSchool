@@ -25,7 +25,6 @@ const Articles = () => {
   const { user, isLoaded: userLoaded } = useUser();
   const { getToken } = useAuth();
 
-  const  backendUrl  = 'https://ankurschool-v6d0.onrender.com'
 
   // Check if user is admin
   useEffect(() => {
@@ -73,7 +72,7 @@ const Articles = () => {
     try {
       setLoading(true);
       const response = await axios.get(
-        backendUrl + '/api/content/type/article'
+        'https://ankurschool-v6d0.onrender.com/api/content/type/article'
       );
       if (response.status === 200) {
         setArticles(response.data.data);
@@ -123,7 +122,7 @@ const Articles = () => {
   const handleDelete = async (id) => {
     try {
       const token = await getToken();
-      await axios.delete(backendUrl + `/api/content/${id}`, {
+      await axios.delete(`https://ankurschool-v6d0.onrender.com/api/content/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setArticles(articles.filter(article => article._id !== id));

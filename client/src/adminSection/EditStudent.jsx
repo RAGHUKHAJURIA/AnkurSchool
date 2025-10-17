@@ -159,7 +159,7 @@ const EditStudent = ({ student, onClose, onStudentUpdated }) => {
 
             console.log('Updating student data:', submissionData);
 
-            const response = await axios.put(`${backendUrl}/api/admin/students/${student._id}`, submissionData, {
+            const response = await axios.put(`https://ankurschool-v6d0.onrender.com/api/admin/students/${student._id}`, submissionData, {
                 headers: {
                     'Content-Type': 'application/json'
                 }

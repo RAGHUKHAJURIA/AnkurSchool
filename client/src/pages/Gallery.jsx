@@ -23,7 +23,6 @@ const Gallery = () => {
   const { user, isLoaded: userLoaded } = useUser();
   const { getToken } = useAuth();
 
-  const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
   // Check if user is admin based on Clerk metadata
   useEffect(() => {

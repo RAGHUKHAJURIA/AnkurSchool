@@ -40,7 +40,7 @@ const PaymentModal = ({ isOpen, onClose, formData, onPaymentSuccess }) => {
                 }
             };
 
-            const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}/api/payments/initiate`, {
+            const response = await axios.post(`https://ankurschool-v6d0.onrender.com/api/payments/initiate`, {
                 formData: paymentFormData
             });
 
@@ -63,7 +63,7 @@ const PaymentModal = ({ isOpen, onClose, formData, onPaymentSuccess }) => {
         try {
             setIsVerifying(true);
             const response = await axios.get(
-                `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}/api/payments/verify/${merchantTransactionId}`
+                `https://ankurschool-v6d0.onrender.com/api/payments/verify/${merchantTransactionId}`
             );
 
             if (response.data.success && response.data.data.paymentStatus === 'paid') {

@@ -22,7 +22,7 @@ const Contact = () => {
         e.preventDefault();
 
         try {
-            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}/api/messages`, {
+            const response = await fetch(`https://ankurschool-v6d0.onrender.com/api/messages`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

@@ -21,7 +21,7 @@ const CreateAdminUser = () => {
         setMessage({ type: '', text: '' });
 
         try {
-            const response = await axios.post(`${backendUrl}/api/test/users/sync-clerk`, {
+            const response = await axios.post(`https://ankurschool-v6d0.onrender.com/api/test/users/sync-clerk`, {
                 clerkUserId: user?.id,
                 email: formData.email,
                 name: formData.name,

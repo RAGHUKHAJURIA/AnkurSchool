@@ -139,7 +139,7 @@ const Admission = () => {
 
     try {
         // Use the correct endpoint
-        const response = await fetch(`${backendUrl}/api/admission/apply`, {
+        const response = await fetch(`https://ankurschool-v6d0.onrender.com/api/admission/apply`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

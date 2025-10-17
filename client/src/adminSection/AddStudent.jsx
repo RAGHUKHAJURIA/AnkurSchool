@@ -126,7 +126,7 @@ const AddStudent = ({ onClose, onStudentAdded }) => {
 
             console.log('Submitting student data:', submissionData);
 
-            const response = await axios.post(`${backendUrl}/api/admin/add-student`, submissionData, {
+            const response = await axios.post(`https://ankurschool-v6d0.onrender.com/api/admin/add-student`, submissionData, {
                 headers: {
                     'Content-Type': 'application/json'
                 }

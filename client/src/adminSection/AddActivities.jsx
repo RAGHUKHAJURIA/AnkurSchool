@@ -190,7 +190,7 @@ const AddActivities = () => {
             console.log('Featured image being sent:', requestData.featuredImage);
             console.log('========================');
 
-            const response = await axios.post(backendUrl + '/api/content', requestData, {
+            const response = await axios.post('https://ankurschool-v6d0.onrender.com/api/content', requestData, {
                 headers: {
                     'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`
@@ -868,7 +868,7 @@ const AddActivities = () => {
 
                                             try {
                                                 const response = await axios.post(
-                                                    `${backendUrl}/api/test/test-gallery`,
+                                                    `https://ankurschool-v6d0.onrender.com/api/test/test-gallery`,
                                                     testData,
                                                     {
                                                         headers: {
