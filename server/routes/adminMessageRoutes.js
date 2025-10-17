@@ -23,3 +23,4 @@ router.patch('/:id/replied', markAsReplied); // Mark message as replied
 router.delete('/:id', deleteMessage); // Delete message
 
 export default router;
+

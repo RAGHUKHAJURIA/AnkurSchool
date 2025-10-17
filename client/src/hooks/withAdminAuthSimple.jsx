@@ -47,3 +47,4 @@ export const withAdminAuthSimple = (WrappedComponent) => {
         return <WrappedComponent {...props} />;
     };
 };
+

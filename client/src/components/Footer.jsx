@@ -1,71 +1,111 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { School, Phone, Mail, MapPin } from 'lucide-react';
+import { School, Phone, Mail, MapPin, Facebook, Twitter, Instagram, Youtube } from 'lucide-react';
 
 const Footer = () => {
     const currentYear = new Date().getFullYear();
 
     return (
-        <footer className="bg-slate-900 text-white border-t border-slate-700">
-            <div className="max-w-7xl mx-auto px-4 py-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <footer className="bg-gray-900/95 backdrop-blur-md text-white border-t border-gray-700/50">
+            <div className="max-w-7xl mx-auto px-4 py-12">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
 
                     {/* School Info */}
-                    <div className="space-y-3">
-                        <div className="flex items-center space-x-2">
-                            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                                <School className="w-5 h-5 text-white" />
+                    <div className="space-y-4">
+                        <div className="flex items-center space-x-3">
+                            <div className="w-10 h-10 bg-gradient-to-br from-gray-700 to-gray-800 rounded-xl flex items-center justify-center shadow-lg border border-gray-600/50">
+                                <School className="w-6 h-6 text-gray-300" />
                             </div>
-                            <h3 className="text-lg font-bold">Ankur School</h3>
+                            <div>
+                                <h3 className="text-xl font-bold text-white">Attainers</h3>
+                                <p className="text-gray-400 text-sm">Est. 1985</p>
+                            </div>
                         </div>
-                        <p className="text-gray-300 text-sm">
-                            Excellence in Education - Nurturing young minds for a brighter future.
+                        <p className="text-gray-400 text-sm leading-relaxed">
+                            Excellence in Education - Nurturing young minds for a brighter future through quality education and holistic development.
                         </p>
+                        
+                        {/* Social Links */}
+                        <div className="flex space-x-3 pt-2">
+                            <a href="#" className="w-8 h-8 bg-gray-800/50 rounded-lg flex items-center justify-center border border-gray-700/50 hover:bg-gray-700/50 transition-all duration-300">
+                                <Facebook className="w-4 h-4 text-gray-400" />
+                            </a>
+                            <a href="#" className="w-8 h-8 bg-gray-800/50 rounded-lg flex items-center justify-center border border-gray-700/50 hover:bg-gray-700/50 transition-all duration-300">
+                                <Twitter className="w-4 h-4 text-gray-400" />
+                            </a>
+                            <a href="#" className="w-8 h-8 bg-gray-800/50 rounded-lg flex items-center justify-center border border-gray-700/50 hover:bg-gray-700/50 transition-all duration-300">
+                                <Instagram className="w-4 h-4 text-gray-400" />
+                            </a>
+                            <a href="#" className="w-8 h-8 bg-gray-800/50 rounded-lg flex items-center justify-center border border-gray-700/50 hover:bg-gray-700/50 transition-all duration-300">
+                                <Youtube className="w-4 h-4 text-gray-400" />
+                            </a>
+                        </div>
                     </div>
 
                     {/* Quick Links */}
-                    <div className="space-y-3">
-                        <h4 className="text-sm font-semibold text-blue-300">Quick Links</h4>
-                        <div className="grid grid-cols-2 gap-2">
-                            <Link to="/" className="text-gray-300 hover:text-white text-sm transition-colors">Home</Link>
-                            <Link to="/about" className="text-gray-300 hover:text-white text-sm transition-colors">About</Link>
-                            <Link to="/admission" className="text-gray-300 hover:text-white text-sm transition-colors">Admission</Link>
-                            <Link to="/activities" className="text-gray-300 hover:text-white text-sm transition-colors">Activities</Link>
-                            <Link to="/gallery" className="text-gray-300 hover:text-white text-sm transition-colors">Gallery</Link>
-                            <Link to="/contact" className="text-gray-300 hover:text-white text-sm transition-colors">Contact</Link>
+                    <div className="space-y-4">
+                        <h4 className="text-lg font-semibold text-white border-l-4 border-gray-600 pl-3">Quick Links</h4>
+                        <div className="space-y-2">
+                            <Link to="/" className="block text-gray-400 hover:text-white text-sm transition-all duration-300 hover:translate-x-1">Home</Link>
+                            <Link to="/activities" className="block text-gray-400 hover:text-white text-sm transition-all duration-300 hover:translate-x-1">Activities</Link>
+                            <Link to="/gallery" className="block text-gray-400 hover:text-white text-sm transition-all duration-300 hover:translate-x-1">Gallery</Link>
+                            <Link to="/contact" className="block text-gray-400 hover:text-white text-sm transition-all duration-300 hover:translate-x-1">Contact</Link>
+                        </div>
+                    </div>
+
+                    {/* Academics */}
+                    <div className="space-y-4">
+                        <h4 className="text-lg font-semibold text-white border-l-4 border-gray-600 pl-3">Academics</h4>
+                        <div className="space-y-2">
+                            <Link to="/#" className="block text-gray-400 hover:text-white text-sm transition-all duration-300 hover:translate-x-1">Curriculum</Link>
+                            <Link to="/#" className="block text-gray-400 hover:text-white text-sm transition-all duration-300 hover:translate-x-1">Our Faculty</Link>
+                            <Link to="/#" className="block text-gray-400 hover:text-white text-sm transition-all duration-300 hover:translate-x-1">Results</Link>
+                            <Link to="/#" className="block text-gray-400 hover:text-white text-sm transition-all duration-300 hover:translate-x-1">Events</Link>
+                            <Link to="/#" className="block text-gray-400 hover:text-white text-sm transition-all duration-300 hover:translate-x-1">Facilities</Link>
                         </div>
                     </div>
 
                     {/* Contact */}
-                    <div className="space-y-3">
-                        <h4 className="text-sm font-semibold text-blue-300">Contact</h4>
-                        <div className="space-y-2">
-                            <div className="flex items-center space-x-2 text-sm text-gray-300">
-                                <Phone className="w-4 h-4 text-blue-400" />
-                                <span>+91 98765 43210</span>
+                    <div className="space-y-4">
+                        <h4 className="text-lg font-semibold text-white border-l-4 border-gray-600 pl-3">Contact Info</h4>
+                        <div className="space-y-3">
+                            <div className="flex items-start space-x-3">
+                                <MapPin className="w-5 h-5 text-gray-500 mt-0.5 flex-shrink-0" />
+                                <span className="text-gray-400 text-sm leading-relaxed">
+                                    123 Education Street,<br />
+                                    Knowledge City, KC 12345
+                                </span>
                             </div>
-                            <div className="flex items-center space-x-2 text-sm text-gray-300">
-                                <Mail className="w-4 h-4 text-blue-400" />
-                                <span>info@ankurschool.edu</span>
+                            <div className="flex items-center space-x-3">
+                                <Phone className="w-5 h-5 text-gray-500 flex-shrink-0" />
+                                <span className="text-gray-400 text-sm">+91 98765 43210</span>
                             </div>
-                            <div className="flex items-start space-x-2 text-sm text-gray-300">
-                                <MapPin className="w-4 h-4 text-blue-400 mt-0.5" />
-                                <span>Education District, City</span>
+                            <div className="flex items-center space-x-3">
+                                <Mail className="w-5 h-5 text-gray-500 flex-shrink-0" />
+                                <span className="text-gray-400 text-sm">info@ankurschool.edu</span>
+                            </div>
+                            
+                            {/* Timing */}
+                            <div className="pt-2">
+                                <p className="text-gray-500 text-xs font-medium uppercase tracking-wide">Office Hours</p>
+                                <p className="text-gray-400 text-sm">Mon - Fri: 8:00 AM - 4:00 PM</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 {/* Bottom Bar */}
-                <div className="border-t border-slate-700 mt-6 pt-4">
-                    <div className="flex flex-col md:flex-row justify-between items-center space-y-2 md:space-y-0">
-                        <p className="text-gray-400 text-sm">
-                            © {currentYear} Ankur School. All rights reserved.
+                <div className="border-t border-gray-700/50 mt-8 pt-6">
+                    <div className="flex flex-col md:flex-row justify-between items-center space-y-3 md:space-y-0">
+                        <p className="text-gray-500 text-sm">
+                            © {currentYear} Attainers. All rights reserved.
                         </p>
-                        <div className="flex items-center space-x-4 text-xs text-gray-500">
-                            <Link to="/privacy" className="hover:text-white transition-colors">Privacy</Link>
-                            <span>•</span>
-                            <Link to="/terms" className="hover:text-white transition-colors">Terms</Link>
+                        <div className="flex items-center space-x-6 text-sm">
+                            <Link to="/#" className="text-gray-500 hover:text-white transition-colors duration-300 text-xs">Privacy Policy</Link>
+                            <div className="w-1 h-1 bg-gray-600 rounded-full"></div>
+                            <Link to="/#" className="text-gray-500 hover:text-white transition-colors duration-300 text-xs">Terms of Service</Link>
+                            <div className="w-1 h-1 bg-gray-600 rounded-full"></div>
+                            <Link to="/#" className="text-gray-500 hover:text-white transition-colors duration-300 text-xs">Sitemap</Link>
                         </div>
                     </div>
                 </div>

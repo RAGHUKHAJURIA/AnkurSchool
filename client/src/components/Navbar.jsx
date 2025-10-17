@@ -1,261 +1,251 @@
-import React, { useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
-import { SignInButton, SignUpButton, UserButton, useUser } from '@clerk/clerk-react'
-import { Menu, X, ChevronDown, School, User, LogIn, UserPlus } from 'lucide-react'
+import React, { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import {
+    SignInButton,
+    SignUpButton,
+    UserButton,
+    useUser,
+} from "@clerk/clerk-react";
+import {
+    Menu,
+    X,
+    ChevronDown,
+    School,
+    User,
+    LogIn,
+    UserPlus,
+} from "lucide-react";
+import {
+    Navbar,
+    NavBody,
+    NavItems,
+    MobileNav,
+    NavbarLogo,
+    NavbarButton,
+    MobileNavHeader,
+    MobileNavToggle,
+    MobileNavMenu,
+} from "./ui/resizable-navbar";
 
-const Navbar = () => {
-    const location = useLocation()
-    const [isMenuOpen, setIsMenuOpen] = useState(false)
-    const [isMoreOpen, setIsMoreOpen] = useState(false)
-    const { isSignedIn, user } = useUser()
+const ModernNavbar = () => {
+    const location = useLocation();
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isMoreOpen, setIsMoreOpen] = useState(false);
+    const { isSignedIn, user } = useUser();
 
-    const toggleMenu = () => setIsMenuOpen(!isMenuOpen)
-    const toggleMore = () => setIsMoreOpen(!isMoreOpen)
-
-    // Menu items structure
     const menuItems = [
-        { name: 'Home', path: '/' },
-        { name: 'About', path: '/about' },
-        { name: 'Contact', path: '/Contact' },
-        { name: 'Activities', path: '/activities' },
-        { name: 'Admission', path: '/admission-section' }
-    ]
+        { name: "Home", path: "/" },
+        { name: "Contact", path: "/contact" },
+        { name: "Activities", path: "/activities" },
+        { name: "Admission", path: "/admission-section" },
+    ];
 
-    // Dropdown items
     const dropdownItems = [
-        { name: 'Gallery', path: '/gallery' },
-        { name: 'Notices', path: '/notice' },
-        { name: 'Articles', path: '/articles' }
-    ]
+        { name: "Gallery", path: "/gallery" },
+        { name: "Notices", path: "/notice" },
+        { name: "Articles", path: "/articles" },
+    ];
 
     return (
-        <nav className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 shadow-2xl backdrop-blur-md border-b border-slate-700/50 sticky top-0 z-50">
-            <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
-                <div className="flex items-center justify-between py-3 sm:py-4">
-                    {/* Logo/School Name */}
-                    <Link to="/" className="flex items-center group">
-                        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mr-3 shadow-lg group-hover:shadow-xl group-hover:scale-105 transition-all duration-300">
-                            <School className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
-                        </div>
-                        <div className="flex flex-col">
-                            <span className="text-white text-base sm:text-lg lg:text-xl font-bold group-hover:text-blue-200 transition-colors duration-300">Ankur School</span>
-                            <span className="text-slate-300 text-xs sm:text-sm font-medium hidden sm:block">Excellence in Education</span>
-                        </div>
-                    </Link>
+        <div className="w-full fixed top-0 left-0 z-50">
+            <Navbar>
+                {/* Desktop Navbar */}
+                <NavBody>
+                    {/* Logo */}
+                    <NavbarLogo>
+                        <Link to="/" className="flex items-center space-x-3 group">
+                            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl flex items-center justify-center shadow-md group-hover:scale-105 transition-all duration-300">
+                                <School className="w-6 h-6 text-white" />
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-white text-lg font-bold group-hover:text-blue-200 transition-colors">
+                                    Attainers
+                                </span>
+                            </div>
+                        </Link>
+                    </NavbarLogo>
 
-                    {/* Desktop Navigation Links */}
-                    <ul className="hidden md:flex items-center space-x-2 lg:space-x-4">
+                    {/* Menu Items */}
+                    <div className="hidden md:flex items-center space-x-2">
                         {menuItems.map((item) => (
-                            <li key={item.name}>
-                                <Link
-                                    to={item.path}
-                                    className={`
-                                        px-4 lg:px-5 py-2.5 text-sm font-semibold rounded-xl transition-all duration-300 ease-out
-                                        ${location.pathname === item.path
-                                            ? 'text-white bg-gradient-to-r from-blue-600 to-blue-700 shadow-lg'
-                                            : 'text-slate-300 hover:text-white hover:bg-slate-700/50 hover:shadow-md transform hover:-translate-y-0.5'}
-                                    `}
-                                >
-                                    {item.name}
-                                </Link>
-                            </li>
+                            <Link
+                                key={item.name}
+                                to={item.path}
+                                className={`px-4 py-2 text-sm font-semibold rounded-xl transition-all duration-300 ${location.pathname === item.path
+                                    ? "text-white bg-gradient-to-r from-blue-600 to-blue-700 shadow-md"
+                                    : "text-slate-300 hover:text-white hover:bg-slate-800/50"
+                                    }`}
+                            >
+                                {item.name}
+                            </Link>
                         ))}
 
-                        {/* More dropdown - Fixed with a container that maintains hover state */}
-                        <li className="relative">
-                            <div
-                                className="h-full"
-                                onMouseEnter={() => setIsMoreOpen(true)}
-                                onMouseLeave={() => setIsMoreOpen(false)}
+                        {/* Dropdown */}
+                        <div
+                            className="relative"
+                            onMouseEnter={() => setIsMoreOpen(true)}
+                            onMouseLeave={() => {
+                                // small delay to prevent flicker
+                                setTimeout(() => setIsMoreOpen(false), 150);
+                            }}
+                        >
+                            <button
+                                className={`flex items-center gap-1 px-4 py-2 text-sm font-semibold rounded-xl transition-all duration-300 ${isMoreOpen
+                                    ? "text-white bg-gradient-to-r from-blue-600 to-blue-700 shadow-md"
+                                    : "text-slate-300 hover:text-white hover:bg-slate-800/50"
+                                    }`}
                             >
-                                <button
-                                    onClick={toggleMore}
-                                    className={`
-                                        px-4 lg:px-5 py-2.5 text-sm font-semibold transition-all duration-300 ease-out flex items-center rounded-xl
-                                        ${isMoreOpen || dropdownItems.some(item => location.pathname === item.path)
-                                            ? 'text-white bg-gradient-to-r from-blue-600 to-blue-700 shadow-lg'
-                                            : 'text-slate-300 hover:text-white hover:bg-slate-700/50 hover:shadow-md transform hover:-translate-y-0.5'}
-                                    `}
+                                More
+                                <ChevronDown
+                                    className={`w-4 h-4 transition-transform ${isMoreOpen ? "rotate-180" : ""}`}
+                                />
+                            </button>
+
+                            {/* Dropdown Menu */}
+                            {isMoreOpen && (
+                                <div
+                                    className="absolute right-0 mt-2 w-48 bg-slate-900/95 backdrop-blur-lg border border-slate-700 rounded-2xl shadow-2xl animate-fade-in scale-95 origin-top transition-all duration-200"
+                                    style={{ top: "100%" }}
+                                    onMouseEnter={() => setIsMoreOpen(true)} // keep open while hovering menu
+                                    onMouseLeave={() => setIsMoreOpen(false)}
                                 >
-                                    More
-                                    <ChevronDown
-                                        className={`ml-1 h-4 w-4 transition-transform duration-300 ${isMoreOpen ? 'rotate-180' : ''}`}
-                                    />
-                                </button>
+                                    {/* Invisible connector to prevent hover gap */}
+                                    <div className="absolute -top-2 left-0 right-0 h-2 bg-transparent"></div>
 
-                                {/* Dropdown menu with a connecting element to prevent gap issues */}
-                                {isMoreOpen && (
-                                    <div
-                                        className="absolute z-10 mt-2 w-48 rounded-2xl shadow-2xl bg-slate-800/95 backdrop-blur-md border border-slate-700/50 animate-slide-down"
-                                        style={{ top: '100%' }}
-                                    >
-                                        {/* Connector element to prevent hover gap */}
-                                        <div className="absolute top-0 left-0 right-0 h-2 -mt-2"></div>
-                                        <div className="py-2">
-                                            {dropdownItems.map((item) => (
-                                                <Link
-                                                    key={item.name}
-                                                    to={item.path}
-                                                    className={`
-                                                        block px-4 py-3 text-sm font-medium transition-all duration-300 ease-out
-                                                        ${location.pathname === item.path
-                                                            ? 'text-white bg-gradient-to-r from-blue-600/20 to-blue-700/20 border-l-4 border-blue-500'
-                                                            : 'text-slate-300 hover:text-white hover:bg-slate-700/50 hover:translate-x-1'}
-                                                    `}
-                                                    onClick={() => setIsMoreOpen(false)}
-                                                >
-                                                    {item.name}
-                                                </Link>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        </li>
-                    </ul>
+                                    {dropdownItems.map((item) => (
+                                        <Link
+                                            key={item.name}
+                                            to={item.path}
+                                            className={`block px-4 py-3 text-sm rounded-xl transition-all duration-300 ${location.pathname === item.path
+                                                ? "text-white bg-blue-700/30"
+                                                : "text-slate-300 hover:text-white hover:bg-slate-800/70"
+                                                }`}
+                                            onClick={() => setIsMoreOpen(false)}
+                                        >
+                                            {item.name}
+                                        </Link>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
 
-                    {/* Desktop Authentication Section */}
-                    <div className="hidden md:flex items-center space-x-3">
+                    </div>
+
+                    {/* Auth Buttons (Desktop) */}
+                    <div className="hidden md:flex items-center gap-4">
                         {isSignedIn ? (
-                            // Signed in: Show user info and UserButton
-                            <div className="flex items-center space-x-3 bg-slate-700/50 rounded-xl px-4 py-2 backdrop-blur-sm">
+                            <div className="flex items-center bg-slate-800/50 rounded-xl px-4 py-2 gap-2">
                                 <User className="w-5 h-5 text-blue-400" />
                                 <span className="text-white text-sm font-semibold">
-                                    {user?.firstName || user?.username || 'User'}
+                                    {user?.firstName || "User"}
                                 </span>
                                 <UserButton
                                     appearance={{
                                         elements: {
                                             avatarBox: "w-8 h-8 rounded-xl",
-                                            userButtonPopoverCard: "bg-white rounded-2xl shadow-2xl",
-                                            userButtonPopoverText: "text-slate-800"
-                                        }
+                                        },
                                     }}
                                 />
                             </div>
                         ) : (
-                            // Not signed in: Show Sign In and Sign Up buttons
-                            <div className="flex items-center space-x-3">
-                                <SignInButton mode="modal">
-                                    <button className="flex items-center space-x-2 text-slate-300 hover:text-white px-4 py-2.5 text-sm font-semibold transition-all duration-300 ease-out hover:bg-slate-700/50 rounded-xl">
-                                        <LogIn className="w-4 h-4" />
-                                        <span>Sign In</span>
-                                    </button>
-                                </SignInButton>
-                                <SignUpButton mode="modal">
-                                    <button className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-2.5 rounded-xl text-sm font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 ease-out">
-                                        <UserPlus className="w-4 h-4" />
-                                        <span>Sign Up</span>
-                                    </button>
-                                </SignUpButton>
-                            </div>
+                            <>
+                                <NavbarButton variant="secondary">
+                                    <SignInButton mode="modal">
+                                        <div className="flex items-center space-x-2">
+                                            <LogIn className="w-4 h-4" />
+                                            <span>Sign In</span>
+                                        </div>
+                                    </SignInButton>
+                                </NavbarButton>
+                                <NavbarButton variant="primary">
+                                    <SignUpButton mode="modal">
+                                        <div className="flex items-center space-x-2">
+                                            <UserPlus className="w-4 h-4" />
+                                            <span>Sign Up</span>
+                                        </div>
+                                    </SignUpButton>
+                                </NavbarButton>
+                            </>
                         )}
                     </div>
+                </NavBody>
 
-                    {/* Mobile Menu Button */}
-                    <button
-                        onClick={toggleMenu}
-                        className="md:hidden text-white p-3 rounded-xl hover:bg-slate-700/50 transition-all duration-300 ease-out"
-                        aria-label="Toggle menu"
+                {/* Mobile Navbar */}
+                <MobileNav>
+                    <MobileNavHeader>
+                        <NavbarLogo>
+                            <Link to="/" className="flex items-center space-x-2">
+                                <School className="w-6 h-6 text-blue-400" />
+                                <span className="text-white font-semibold">Ankur School</span>
+                            </Link>
+                        </NavbarLogo>
+                        <MobileNavToggle
+                            isOpen={isMenuOpen}
+                            onClick={() => setIsMenuOpen(!isMenuOpen)}
+                        />
+                    </MobileNavHeader>
+
+                    <MobileNavMenu
+                        isOpen={isMenuOpen}
+                        onClose={() => setIsMenuOpen(false)}
                     >
-                        {isMenuOpen ? (
-                            <X className="w-6 h-6" />
-                        ) : (
-                            <Menu className="w-6 h-6" />
-                        )}
-                    </button>
-                </div>
+                        {[...menuItems, ...dropdownItems].map((item) => (
+                            <Link
+                                key={item.name}
+                                to={item.path}
+                                onClick={() => setIsMenuOpen(false)}
+                                className={`block px-4 py-3 text-sm font-semibold rounded-xl transition-all duration-300 ${location.pathname === item.path
+                                    ? "text-white bg-blue-700/30"
+                                    : "text-slate-300 hover:text-white hover:bg-slate-800/70"
+                                    }`}
+                            >
+                                {item.name}
+                            </Link>
+                        ))}
 
-                {/* Mobile Menu */}
-                <div className={`md:hidden transition-all duration-500 ease-in-out ${isMenuOpen ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0 overflow-hidden'}`}>
-                    <div className="py-4 border-t border-slate-700/50 bg-slate-800/50 backdrop-blur-md">
-                        <ul className="space-y-2">
-                            {menuItems.map((item) => (
-                                <li key={item.name}>
-                                    <Link
-                                        to={item.path}
-                                        onClick={() => setIsMenuOpen(false)}
-                                        className={`
-                                            block w-full text-left px-4 py-3 text-sm font-semibold transition-all duration-300 ease-out rounded-xl
-                                            ${location.pathname === item.path
-                                                ? 'text-white bg-gradient-to-r from-blue-600 to-blue-700 shadow-lg'
-                                                : 'text-slate-300 hover:text-white hover:bg-slate-700/50 hover:translate-x-2'}
-                                        `}
-                                    >
-                                        {item.name}
-                                    </Link>
-                                </li>
-                            ))}
-
-                            {/* Mobile dropdown items */}
-                            {dropdownItems.map((item) => (
-                                <li key={item.name}>
-                                    <Link
-                                        to={item.path}
-                                        onClick={() => setIsMenuOpen(false)}
-                                        className={`
-                                            block w-full text-left px-6 py-4 text-base font-semibold transition-all duration-300 ease-out rounded-xl
-                                            ${location.pathname === item.path
-                                                ? 'text-white bg-gradient-to-r from-blue-600 to-blue-700 shadow-lg'
-                                                : 'text-slate-300 hover:text-white hover:bg-slate-700/50 hover:translate-x-2'}
-                                        `}
-                                    >
-                                        {item.name}
-                                    </Link>
-                                </li>
-                            ))}
-                        </ul>
-
-                        {/* Mobile Authentication Section */}
-                        <div className="mt-6 px-6">
+                        <div className="flex flex-col gap-4 mt-6">
                             {isSignedIn ? (
-                                // Mobile: Signed in user
-                                <div className="flex items-center justify-between bg-slate-700/50 rounded-xl p-4 backdrop-blur-sm">
-                                    <div className="flex items-center space-x-3">
+                                <div className="flex items-center justify-between bg-slate-800/50 rounded-xl p-4">
+                                    <div className="flex items-center gap-2">
                                         <User className="w-5 h-5 text-blue-400" />
                                         <span className="text-white text-sm font-semibold">
-                                            {user?.firstName || user?.username || 'User'}
+                                            {user?.firstName || "User"}
                                         </span>
                                     </div>
                                     <UserButton
                                         appearance={{
                                             elements: {
                                                 avatarBox: "w-8 h-8 rounded-xl",
-                                                userButtonPopoverCard: "bg-white rounded-2xl shadow-2xl",
-                                                userButtonPopoverText: "text-slate-800"
-                                            }
+                                            },
                                         }}
                                     />
                                 </div>
                             ) : (
-                                // Mobile: Not signed in
-                                <div className="space-y-3">
-                                    <SignInButton mode="modal">
-                                        <button
-                                            className="w-full flex items-center justify-center space-x-2 text-slate-300 hover:text-white py-4 text-sm font-semibold transition-all duration-300 ease-out border border-slate-600 rounded-xl hover:border-slate-500 hover:bg-slate-700/50"
-                                            onClick={() => setIsMenuOpen(false)}
-                                        >
-                                            <LogIn className="w-4 h-4" />
-                                            <span>Sign In</span>
-                                        </button>
-                                    </SignInButton>
-                                    <SignUpButton mode="modal">
-                                        <button
-                                            className="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-4 rounded-xl text-sm font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 ease-out"
-                                            onClick={() => setIsMenuOpen(false)}
-                                        >
-                                            <UserPlus className="w-4 h-4" />
-                                            <span>Sign Up</span>
-                                        </button>
-                                    </SignUpButton>
-                                </div>
+                                <>
+                                    <NavbarButton variant="secondary">
+                                        <SignInButton mode="modal">
+                                            <div className="flex items-center justify-center gap-2">
+                                                <LogIn className="w-4 h-4" />
+                                                <span>Sign In</span>
+                                            </div>
+                                        </SignInButton>
+                                    </NavbarButton>
+                                    <NavbarButton variant="primary">
+                                        <SignUpButton mode="modal">
+                                            <div className="flex items-center justify-center gap-2">
+                                                <UserPlus className="w-4 h-4" />
+                                                <span>Sign Up</span>
+                                            </div>
+                                        </SignUpButton>
+                                    </NavbarButton>
+                                </>
                             )}
                         </div>
-                    </div>
-                </div>
-            </div>
-        </nav>
-    )
-}
+                    </MobileNavMenu>
+                </MobileNav>
+            </Navbar>
+        </div>
+    );
+};
 
-export default Navbar
+export default ModernNavbar;
