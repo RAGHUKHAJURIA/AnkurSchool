@@ -2,6 +2,7 @@ import express from 'express';
 import multer from 'multer';
 import { uploadToGridFS, downloadFromGridFS, getFileInfo, listFiles } from '../config/gridfs.js';
 import User from '../models/user.js';
+import { clerkClient } from '@clerk/express';
 
 const testRouter = express.Router();
 
@@ -358,6 +359,94 @@ testRouter.post('/check-admin-status', async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Failed to check admin status',
+            error: error.message
+        });
+    }
+});
+
+// Debug admin authentication
+testRouter.post('/debug-admin-auth', async (req, res) => {
+    try {
+        const { sessionToken, clerkUserId } = req.body;
+
+        const debugInfo = {
+            timestamp: new Date().toISOString(),
+            hasSessionToken: !!sessionToken,
+            hasClerkUserId: !!clerkUserId,
+            clerkSecretKey: !!process.env.CLERK_SECRET_KEY,
+            environment: process.env.NODE_ENV || 'development'
+        };
+
+        // Try to decode token
+        if (sessionToken) {
+            try {
+                const tokenParts = sessionToken.split('.');
+                if (tokenParts.length === 3) {
+                    const payload = JSON.parse(atob(tokenParts[1]));
+                    debugInfo.tokenPayload = {
+                        sub: payload.sub,
+                        user_id: payload.user_id,
+                        id: payload.id,
+                        userId: payload.userId,
+                        exp: payload.exp,
+                        iat: payload.iat
+                    };
+                }
+            } catch (e) {
+                debugInfo.tokenDecodeError = e.message;
+            }
+        }
+
+        // Try to verify with Clerk
+        if (sessionToken && process.env.CLERK_SECRET_KEY) {
+            try {
+                const session = await clerkClient.sessions.verifySession(sessionToken, {
+                    secretKey: process.env.CLERK_SECRET_KEY
+                });
+                debugInfo.clerkSession = {
+                    userId: session.userId,
+                    status: session.status,
+                    expireAt: session.expireAt
+                };
+            } catch (e) {
+                debugInfo.clerkVerificationError = e.message;
+            }
+        }
+
+        // Check database users
+        const allUsers = await User.find({}, 'externalId email name role createdAt').limit(10);
+        debugInfo.databaseUsers = allUsers.map(user => ({
+            id: user._id,
+            externalId: user.externalId,
+            email: user.email,
+            name: user.name,
+            role: user.role,
+            createdAt: user.createdAt
+        }));
+
+        // Check specific user if provided
+        if (clerkUserId) {
+            const specificUser = await User.findOne({ externalId: clerkUserId });
+            debugInfo.specificUser = specificUser ? {
+                id: specificUser._id,
+                externalId: specificUser.externalId,
+                email: specificUser.email,
+                name: specificUser.name,
+                role: specificUser.role
+            } : null;
+        }
+
+        res.json({
+            success: true,
+            message: 'Debug information collected',
+            debug: debugInfo
+        });
+
+    } catch (error) {
+        console.error('Debug admin auth error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Debug failed',
             error: error.message
         });
     }

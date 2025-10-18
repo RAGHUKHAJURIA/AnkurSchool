@@ -26,44 +26,90 @@ export const requireAdminAuth = async (req, res, next) => {
             });
         }
 
-        // Simplified authentication - just check if token exists and user is admin in database
-        // For now, we'll bypass complex Clerk verification and just check the database
+        // Enhanced authentication - try multiple methods to get user ID
         let clerkUserId = null;
 
         try {
-            // Try to decode the token to get user ID (simple approach)
-            // If this fails, we'll use a fallback method
+            // Method 1: Try to decode JWT token
             const tokenParts = sessionToken.split('.');
             if (tokenParts.length === 3) {
                 try {
                     const payload = JSON.parse(atob(tokenParts[1]));
-                    clerkUserId = payload.sub || payload.user_id;
+                    clerkUserId = payload.sub || payload.user_id || payload.id;
                 } catch (e) {
-                    // Could not decode token, using fallback method
+                    // Token decode failed, try other methods
                 }
             }
 
-            // If we couldn't get user ID from token, use the known admin user ID
+            // Method 2: Try to verify with Clerk (if credentials are available)
+            if (!clerkUserId && process.env.CLERK_SECRET_KEY) {
+                try {
+                    const session = await clerkClient.sessions.verifySession(sessionToken, {
+                        secretKey: process.env.CLERK_SECRET_KEY
+                    });
+                    if (session && session.userId) {
+                        clerkUserId = session.userId;
+                    }
+                } catch (e) {
+                    // Clerk verification failed, continue with other methods
+                }
+            }
+
+            // Method 3: Check if token contains user info in a different format
             if (!clerkUserId) {
-                clerkUserId = 'user_32hYHOOEOxGhllcz6aGuSZA9jpb'; // Your admin user ID
+                try {
+                    const decoded = JSON.parse(atob(sessionToken.split('.')[1]));
+                    clerkUserId = decoded.sub || decoded.user_id || decoded.id || decoded.userId;
+                } catch (e) {
+                    // All methods failed
+                }
+            }
+
+            // If still no user ID found, return error
+            if (!clerkUserId) {
+                return res.status(401).json({
+                    success: false,
+                    message: 'Access denied: Could not identify user',
+                    error: 'Invalid or malformed token'
+                });
             }
 
         } catch (error) {
             return res.status(401).json({
                 success: false,
-                message: 'Access denied: Invalid authentication',
-                error: 'Token processing failed'
+                message: 'Access denied: Authentication failed',
+                error: 'Token processing error'
             });
         }
 
         // Check if user exists in our database
-        const dbUser = await User.findOne({ externalId: clerkUserId });
+        let dbUser = await User.findOne({ externalId: clerkUserId });
+
+        // If user not found, try to find by email (fallback for deployment issues)
+        if (!dbUser) {
+            try {
+                // Try to get user info from Clerk to find by email
+                if (process.env.CLERK_SECRET_KEY) {
+                    const clerkUser = await clerkClient.users.getUser(clerkUserId);
+                    if (clerkUser && clerkUser.emailAddresses && clerkUser.emailAddresses.length > 0) {
+                        const email = clerkUser.emailAddresses[0].emailAddress;
+                        dbUser = await User.findOne({ email: email });
+                    }
+                }
+            } catch (e) {
+                // Clerk lookup failed, continue with error
+            }
+        }
 
         if (!dbUser) {
             return res.status(403).json({
                 success: false,
-                message: 'Access denied: User not registered',
-                error: 'User not found in system'
+                message: 'Access denied: User not registered in system',
+                error: 'User not found in database',
+                debug: {
+                    clerkUserId: clerkUserId,
+                    suggestion: 'Please ensure user is registered and has admin role'
+                }
             });
         }
 
@@ -72,7 +118,12 @@ export const requireAdminAuth = async (req, res, next) => {
             return res.status(403).json({
                 success: false,
                 message: 'Access denied: Admin privileges required',
-                error: 'Insufficient permissions'
+                error: 'Insufficient permissions',
+                debug: {
+                    userRole: dbUser.role,
+                    requiredRole: 'admin',
+                    suggestion: 'Contact administrator to grant admin access'
+                }
             });
         }
 
