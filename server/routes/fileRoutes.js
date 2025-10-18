@@ -6,6 +6,7 @@ import {
     uploadMultipleFiles,
     downloadFile,
     getFile,
+    getFileInfo,
     getAllFiles,
     deleteFile,
     handleUploadError
