@@ -33,7 +33,7 @@ export const useAdminAuthSimple = () => {
 
             try {
                 // Check admin status using the test endpoint
-                const response = await axios.post(`${backendUrl}/api/test/check-admin-status`, {
+                const response = await axios.post(`https://ankurschool-v6d0.onrender.com/api/test/check-admin-status`, {
                     clerkUserId: user.id
                 });
 
@@ -83,7 +83,7 @@ export const useAdminAuthSimple = () => {
 
             const response = await axios({
                 method,
-                url: `${backendUrl}${url}`,
+                url: `https://ankurschool-v6d0.onrender.com${url}`,
                 headers,
                 ...options
             });

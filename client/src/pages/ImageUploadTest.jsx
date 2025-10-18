@@ -36,7 +36,7 @@ const ImageUploadTest = () => {
 
             console.log('Creating gallery with data:', galleryData);
 
-            const response = await axios.post('http://localhost:5000/api/content', galleryData, {
+            const response = await axios.post('https://ankurschool-v6d0.onrender.com/api/content', galleryData, {
                 headers: {
                     'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`
@@ -117,8 +117,8 @@ const ImageUploadTest = () => {
 
             {message.text && (
                 <div className={`p-4 rounded-lg ${message.type === 'success' ? 'bg-green-50 border border-green-200 text-green-800' :
-                        message.type === 'error' ? 'bg-red-50 border border-red-200 text-red-800' :
-                            'bg-blue-50 border border-blue-200 text-blue-800'
+                    message.type === 'error' ? 'bg-red-50 border border-red-200 text-red-800' :
+                        'bg-blue-50 border border-blue-200 text-blue-800'
                     }`}>
                     {message.text}
                 </div>

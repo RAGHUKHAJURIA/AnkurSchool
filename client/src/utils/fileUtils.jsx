@@ -1,6 +1,6 @@
 // Utility functions for handling file URLs with GridFS
 
-const backendUrl = 'http://localhost:5000'
+const backendUrl = 'https://ankurschool-v6d0.onrender.com'
 
 /**
  * Generate file URL for serving files from GridFS
@@ -12,7 +12,7 @@ export const getFileUrl = (fileId) => {
         console.log('getFileUrl: No fileId provided');
         return null;
     }
-    const url = `http://localhost:5000/api/files/${fileId}`;
+    const url = `https://ankurschool-v6d0.onrender.com/api/files/${fileId}`;
     console.log('Generated file URL:', url, 'for fileId:', fileId);
     return url;
 };
@@ -24,7 +24,7 @@ export const getFileUrl = (fileId) => {
  */
 export const getDownloadUrl = (fileId) => {
     if (!fileId) return null;
-    return `http://localhost:5000/api/files/download/${fileId}`;
+    return `https://ankurschool-v6d0.onrender.com/api/files/download/${fileId}`;
 };
 
 /**

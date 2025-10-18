@@ -11,7 +11,7 @@ const AddActivities = () => {
 
     const { getToken } = useContext(AppContext);
 
-    const backendUrl = 'http://localhost:5000'
+    const backendUrl = 'https://ankurschool-v6d0.onrender.com'
 
 
 
@@ -190,7 +190,7 @@ const AddActivities = () => {
             console.log('Featured image being sent:', requestData.featuredImage);
             console.log('========================');
 
-            const response = await axios.post('http://localhost:5000/api/content', requestData, {
+            const response = await axios.post('https://ankurschool-v6d0.onrender.com/api/content', requestData, {
                 headers: {
                     'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`
@@ -868,7 +868,7 @@ const AddActivities = () => {
 
                                             try {
                                                 const response = await axios.post(
-                                                    `http://localhost:5000/api/test/test-gallery`,
+                                                    `https://ankurschool-v6d0.onrender.com/api/test/test-gallery`,
                                                     testData,
                                                     {
                                                         headers: {

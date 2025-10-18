@@ -35,7 +35,7 @@ export const useAdminAuth = () => {
 
             try {
                 // Check admin status using the test endpoint (no auth required)
-                const response = await axios.post(`${backendUrl}/api/test/check-admin-status`, {
+                const response = await axios.post(`https://ankurschool-v6d0.onrender.com/api/test/check-admin-status`, {
                     clerkUserId: user.id
                 });
 
@@ -97,7 +97,7 @@ export const useAdminAuth = () => {
             console.log('📋 Request headers:', headers);
 
             const response = await axios({
-                url: `${backendUrl}${url}`,
+                url: `https://ankurschool-v6d0.onrender.com${url}`,
                 headers,
                 ...options
             });
@@ -136,7 +136,7 @@ export const useAdminAuth = () => {
                 throw new Error('No authentication token available');
             }
 
-            const response = await axios.get(`${backendUrl}/api/admin/dashboard`, {
+            const response = await axios.get(`https://ankurschool-v6d0.onrender.com/api/admin/dashboard`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'

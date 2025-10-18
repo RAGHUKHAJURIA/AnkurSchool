@@ -43,7 +43,7 @@ const Notice = () => {
     const fetchNotices = async () => {
       try {
         setLoading(true)
-        const response = await axios.get('http://localhost:5000/api/content/type/notice')
+        const response = await axios.get('https://ankurschool-v6d0.onrender.com/api/content/type/notice')
 
         if (response.status === 200) {
           setNotices(response.data.data)
@@ -134,7 +134,7 @@ const Notice = () => {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`http://localhost:5000/api/content/${id}`)
+      await axios.delete(`https://ankurschool-v6d0.onrender.com/api/content/${id}`)
       setNotices(notices.filter((notice) => notice._id !== id))
       setShowDeleteConfirm(null)
     } catch (error) {
@@ -156,7 +156,7 @@ const Notice = () => {
     e.preventDefault()
     try {
       const response = await axios.put(
-        `http://localhost:5000/api/content/${editingNotice._id}`,
+        `https://ankurschool-v6d0.onrender.com/api/content/${editingNotice._id}`,
         formData
       )
 

@@ -8,7 +8,7 @@ export const AppContextProvider = (props) => {
     const { getToken } = useAuth()
     const { user } = useUser()
 
-    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'https://ankurschool-v6d0.onrender.com';
 
     const logToken = async () => {
 

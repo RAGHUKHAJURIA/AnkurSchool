@@ -12,7 +12,7 @@ const DebugAuth = () => {
 
         setLoading(true);
         try {
-            const response = await axios.post('http://localhost:5000/api/test/check-admin-status', {
+            const response = await axios.post('https://ankurschool-v6d0.onrender.com/api/test/check-admin-status', {
                 clerkUserId: user.id
             });
 
@@ -99,7 +99,7 @@ const DebugAuth = () => {
                 <button
                     onClick={async () => {
                         try {
-                            const response = await axios.get('http://localhost:5000/api/test/users');
+                            const response = await axios.get('https://ankurschool-v6d0.onrender.com/api/test/users');
                             setDebugInfo(prev => ({
                                 ...prev,
                                 allUsers: response.data

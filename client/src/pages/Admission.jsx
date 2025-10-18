@@ -50,7 +50,7 @@ const Admission = () => {
     const [message, setMessage] = useState({ type: '', text: '' });
     const [submittedData, setSubmittedData] = useState(null);
 
-    const backendUrl = 'http://localhost:5000'
+    const backendUrl = 'https://ankurschool-v6d0.onrender.com'
 
     const calculateAge = (dateOfBirth) => {
         if (!dateOfBirth) return '';
@@ -139,7 +139,7 @@ const Admission = () => {
 
         try {
             // Use the correct endpoint
-            const response = await fetch(`http://localhost:5000/api/admission/apply`, {
+            const response = await fetch(`https://ankurschool-v6d0.onrender.com/api/admission/apply`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
