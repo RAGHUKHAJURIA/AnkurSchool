@@ -72,7 +72,7 @@ const Articles = () => {
     try {
       setLoading(true);
       const response = await axios.get(
-        'https://ankurschool-v6d0.onrender.com/api/content/type/article'
+        'http://localhost:5000/api/content/type/article'
       );
       if (response.status === 200) {
         setArticles(response.data.data);
@@ -122,7 +122,7 @@ const Articles = () => {
   const handleDelete = async (id) => {
     try {
       const token = await getToken();
-      await axios.delete(`https://ankurschool-v6d0.onrender.com/api/content/${id}`, {
+      await axios.delete(`http://localhost:5000/api/content/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setArticles(articles.filter(article => article._id !== id));

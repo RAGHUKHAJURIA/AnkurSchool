@@ -50,7 +50,7 @@ const Admission = () => {
     const [message, setMessage] = useState({ type: '', text: '' });
     const [submittedData, setSubmittedData] = useState(null);
 
-     const  backendUrl  = 'https://ankurschool-v6d0.onrender.com'
+    const backendUrl = 'http://localhost:5000'
 
     const calculateAge = (dateOfBirth) => {
         if (!dateOfBirth) return '';
@@ -111,115 +111,115 @@ const Admission = () => {
     };
 
     const handleSubmit = async (e) => {
-    e.preventDefault();
-    setMessage({ type: '', text: '' });
-    setLoading(true);
+        e.preventDefault();
+        setMessage({ type: '', text: '' });
+        setLoading(true);
 
-    // Validate form data
-    const requiredFields = [
-        'firstName', 'lastName', 'dateOfBirth', 'gender', 'email', 'phone',
-        'address.street', 'address.city', 'address.state', 'address.zipCode',
-        'applyingForGrade', 'academicYear',
-        'parentName', 'parentPhone', 'parentEmail'
-    ];
+        // Validate form data
+        const requiredFields = [
+            'firstName', 'lastName', 'dateOfBirth', 'gender', 'email', 'phone',
+            'address.street', 'address.city', 'address.state', 'address.zipCode',
+            'applyingForGrade', 'academicYear',
+            'parentName', 'parentPhone', 'parentEmail'
+        ];
 
-    const missingFields = requiredFields.filter(field => {
-        if (field.includes('.')) {
-            const [parent, child] = field.split('.');
-            return !formData[parent] || !formData[parent][child];
-        }
-        return !formData[field];
-    });
-
-    if (missingFields.length > 0) {
-        setMessage({ type: 'error', text: `Please fill in all required fields: ${missingFields.join(', ')}` });
-        setLoading(false);
-        return;
-    }
-
-    try {
-        // Use the correct endpoint
-        const response = await fetch(`https://ankurschool-v6d0.onrender.com/api/admission/apply`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                ...formData,
-                uploadedDocuments,
-                applicationDate: new Date().toISOString(),
-                status: 'submitted'
-            }),
+        const missingFields = requiredFields.filter(field => {
+            if (field.includes('.')) {
+                const [parent, child] = field.split('.');
+                return !formData[parent] || !formData[parent][child];
+            }
+            return !formData[field];
         });
 
-        // Check if response is JSON
-        const contentType = response.headers.get("content-type");
-        if (!contentType || !contentType.includes("application/json")) {
-            const text = await response.text();
-            console.error('Non-JSON response:', text);
-            throw new Error(`Server returned non-JSON response: ${text.substring(0, 100)}`);
+        if (missingFields.length > 0) {
+            setMessage({ type: 'error', text: `Please fill in all required fields: ${missingFields.join(', ')}` });
+            setLoading(false);
+            return;
         }
 
-        const result = await response.json();
-
-        if (!response.ok) {
-            throw new Error(result.message || 'Failed to submit application');
-        }
-
-        if (result.success) {
-            setMessage({
-                type: 'success',
-                text: result.message || 'Your admission application has been submitted successfully! We will contact you soon for further process.'
-            });
-            setIsFormSubmitted(true);
-            setSubmittedData(formData);
-            
-            // Reset form
-            setFormData({
-                firstName: '',
-                lastName: '',
-                dateOfBirth: '',
-                age: '',
-                gender: '',
-                email: '',
-                phone: '',
-                address: {
-                    street: '',
-                    city: '',
-                    state: '',
-                    zipCode: '',
-                    country: 'India'
+        try {
+            // Use the correct endpoint
+            const response = await fetch(`http://localhost:5000/api/admission/apply`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
                 },
-                applyingForGrade: '',
-                academicYear: new Date().getFullYear().toString(),
-                parentName: '',
-                parentPhone: '',
-                parentEmail: '',
-                specialNeeds: '',
-                medicalConditions: '',
-                emergencyContact: {
-                    name: '',
+                body: JSON.stringify({
+                    ...formData,
+                    uploadedDocuments,
+                    applicationDate: new Date().toISOString(),
+                    status: 'submitted'
+                }),
+            });
+
+            // Check if response is JSON
+            const contentType = response.headers.get("content-type");
+            if (!contentType || !contentType.includes("application/json")) {
+                const text = await response.text();
+                console.error('Non-JSON response:', text);
+                throw new Error(`Server returned non-JSON response: ${text.substring(0, 100)}`);
+            }
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.message || 'Failed to submit application');
+            }
+
+            if (result.success) {
+                setMessage({
+                    type: 'success',
+                    text: result.message || 'Your admission application has been submitted successfully! We will contact you soon for further process.'
+                });
+                setIsFormSubmitted(true);
+                setSubmittedData(formData);
+
+                // Reset form
+                setFormData({
+                    firstName: '',
+                    lastName: '',
+                    dateOfBirth: '',
+                    age: '',
+                    gender: '',
+                    email: '',
                     phone: '',
-                    relationship: ''
-                }
+                    address: {
+                        street: '',
+                        city: '',
+                        state: '',
+                        zipCode: '',
+                        country: 'India'
+                    },
+                    applyingForGrade: '',
+                    academicYear: new Date().getFullYear().toString(),
+                    parentName: '',
+                    parentPhone: '',
+                    parentEmail: '',
+                    specialNeeds: '',
+                    medicalConditions: '',
+                    emergencyContact: {
+                        name: '',
+                        phone: '',
+                        relationship: ''
+                    }
+                });
+                setUploadedDocuments([]);
+            } else {
+                setMessage({
+                    type: 'error',
+                    text: result.message || 'Failed to submit application. Please try again.'
+                });
+            }
+        } catch (error) {
+            console.error('Error submitting application:', error);
+            setMessage({
+                type: 'error',
+                text: error.message || 'Failed to submit application. Please check your connection and try again.'
             });
-            setUploadedDocuments([]);
-        } else {
-            setMessage({ 
-                type: 'error', 
-                text: result.message || 'Failed to submit application. Please try again.' 
-            });
+        } finally {
+            setLoading(false);
         }
-    } catch (error) {
-        console.error('Error submitting application:', error);
-        setMessage({ 
-            type: 'error', 
-            text: error.message || 'Failed to submit application. Please check your connection and try again.' 
-        });
-    } finally {
-        setLoading(false);
-    }
-};
+    };
 
     const handleDocumentUpload = (uploadedFile) => {
         setUploadedDocuments(prev => [...prev, uploadedFile]);

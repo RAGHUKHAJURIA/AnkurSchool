@@ -20,6 +20,8 @@ import StudentData from './adminSection/StudentData';
 import Messages from './adminSection/Messages';
 import CreateAdminUser from './pages/CreateAdminUser';
 import TestAuth from './pages/TestAuth';
+import DebugAuth from './pages/DebugAuth';
+import ImageUploadTest from './pages/ImageUploadTest';
 
 
 
@@ -42,6 +44,10 @@ function App() {
         <Route path='/create-admin' element={<CreateAdminUser />} />
         {/* Test Auth */}
         <Route path='/test-auth' element={<TestAuth />} />
+        {/* Debug Auth */}
+        <Route path='/debug-auth' element={<DebugAuth />} />
+        {/* Image Upload Test */}
+        <Route path='/image-upload-test' element={<ImageUploadTest />} />
         {/* Admin Routes */}
         <Route path='/admin' element={<Admin />}>
           <Route index element={<AdminDashboard />} />

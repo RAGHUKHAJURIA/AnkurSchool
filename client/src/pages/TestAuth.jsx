@@ -9,7 +9,7 @@ const TestAuth = () => {
     const [testResult, setTestResult] = useState(null);
     const [loading, setLoading] = useState(false);
 
-    const backendUrl = 'https://ankurschool-v6d0.onrender.com'
+    const backendUrl = 'http://localhost:5000'
 
     const getTokenTest = async () => {
         try {
@@ -29,7 +29,7 @@ const TestAuth = () => {
 
         setLoading(true);
         try {
-            const response = await axios.get(`https://ankurschool-v6d0.onrender.com/api/admin/students`, {
+            const response = await axios.get(`http://localhost:5000/api/admin/students`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
@@ -51,7 +51,7 @@ const TestAuth = () => {
     const testAdminStatus = async () => {
         setLoading(true);
         try {
-            const response = await axios.post(`https://ankurschool-v6d0.onrender.com/api/test/check-admin-status`, {
+            const response = await axios.post(`http://localhost:5000/api/test/check-admin-status`, {
                 clerkUserId: user?.id
             });
             setTestResult({ success: true, data: response.data });

@@ -44,7 +44,7 @@ const EditStudent = ({ student, onClose, onStudentUpdated }) => {
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
 
-    const backendUrl = 'https://ankurschool-v6d0.onrender.com'
+    const backendUrl = 'http://localhost:5000'
 
     // Populate form with student data when component mounts
     useEffect(() => {
@@ -159,7 +159,7 @@ const EditStudent = ({ student, onClose, onStudentUpdated }) => {
 
             console.log('Updating student data:', submissionData);
 
-            const response = await axios.put(`https://ankurschool-v6d0.onrender.com/api/admin/students/${student._id}`, submissionData, {
+            const response = await axios.put(`http://localhost:5000/api/admin/students/${student._id}`, submissionData, {
                 headers: {
                     'Content-Type': 'application/json'
                 }

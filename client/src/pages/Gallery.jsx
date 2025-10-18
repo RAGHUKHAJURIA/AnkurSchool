@@ -36,7 +36,7 @@ const Gallery = () => {
     const fetchGalleries = async () => {
       try {
         setLoading(true);
-        const response = await axios.get('https://ankurschool-v6d0.onrender.com/api/content/type/gallery');
+        const response = await axios.get('http://localhost:5000/api/content/type/gallery');
 
         // Check if response structure is different than expected
         if (response.status === 200) {
@@ -81,7 +81,7 @@ const Gallery = () => {
   const handleDelete = async (id) => {
     try {
       const token = await getToken();
-      const response = await axios.delete(`https://ankurschool-v6d0.onrender.com/api/content/${id}`, {
+      const response = await axios.delete(`http://localhost:5000/api/content/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -109,7 +109,7 @@ const Gallery = () => {
       };
 
       const response = await axios.put(
-        `https://ankurschool-v6d0.onrender.com/api/content/${editingGallery._id}`,
+        `http://localhost:5000/api/content/${editingGallery._id}`,
         updateData,
         {
           headers: {
@@ -460,7 +460,7 @@ const Gallery = () => {
 
       {/* Footer */}
       <Footer />
-    <div />
+      <div />
     </>
   );
 };

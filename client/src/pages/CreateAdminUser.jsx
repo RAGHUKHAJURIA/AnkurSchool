@@ -13,7 +13,7 @@ const CreateAdminUser = () => {
         role: 'admin'
     });
 
-     const  backendUrl  = 'https://ankurschool-v6d0.onrender.com'
+    const backendUrl = 'http://localhost:5000'
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -21,7 +21,7 @@ const CreateAdminUser = () => {
         setMessage({ type: '', text: '' });
 
         try {
-            const response = await axios.post(`https://ankurschool-v6d0.onrender.com/api/test/users/sync-clerk`, {
+            const response = await axios.post(`http://localhost:5000/api/test/users/sync-clerk`, {
                 clerkUserId: user?.id,
                 email: formData.email,
                 name: formData.name,
@@ -103,8 +103,8 @@ const CreateAdminUser = () => {
                         {/* Message Display */}
                         {message.text && (
                             <div className={`mb-6 p-4 rounded-xl flex items-center gap-3 ${message.type === 'success'
-                                    ? 'bg-green-50 border border-green-200 text-green-800'
-                                    : 'bg-red-50 border border-red-200 text-red-800'
+                                ? 'bg-green-50 border border-green-200 text-green-800'
+                                : 'bg-red-50 border border-red-200 text-red-800'
                                 }`}>
                                 {message.type === 'success' ? (
                                     <CheckCircle className="w-5 h-5 flex-shrink-0 text-green-600" />

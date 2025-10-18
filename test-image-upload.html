@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Image Upload</title>
+</head>
+<body>
+    <h1>Test Image Upload and Gallery Creation</h1>
+    
+    <div>
+        <h2>Step 1: Upload Image</h2>
+        <input type="file" id="imageInput" accept="image/*">
+        <button onclick="uploadImage()">Upload Image</button>
+        <div id="uploadResult"></div>
+    </div>
+    
+    <div>
+        <h2>Step 2: Create Gallery with Image</h2>
+        <input type="text" id="galleryTitle" placeholder="Gallery Title" value="Test Gallery">
+        <input type="text" id="galleryDescription" placeholder="Gallery Description" value="Test Description">
+        <button onclick="createGallery()">Create Gallery</button>
+        <div id="galleryResult"></div>
+    </div>
+    
+    <div>
+        <h2>Step 3: Test File Serving</h2>
+        <input type="text" id="fileIdInput" placeholder="File ID">
+        <button onclick="testFileServing()">Test File Serving</button>
+        <div id="fileResult"></div>
+    </div>
+
+    <script>
+        let uploadedFileId = null;
+        
+        async function uploadImage() {
+            const fileInput = document.getElementById('imageInput');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert('Please select a file');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('category', 'gallery');
+            formData.append('description', 'Test image upload');
+            
+            try {
+                const response = await fetch('http://localhost:5000/api/files/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                console.log('Upload result:', result);
+                
+                if (result.success) {
+                    uploadedFileId = result.data.fileId;
+                    document.getElementById('uploadResult').innerHTML = `
+                        <p style="color: green;">✅ Upload successful!</p>
+                        <p>File ID: ${uploadedFileId}</p>
+                        <p>Filename: ${result.data.filename}</p>
+                    `;
+                } else {
+                    document.getElementById('uploadResult').innerHTML = `
+                        <p style="color: red;">❌ Upload failed: ${result.message}</p>
+                    `;
+                }
+            } catch (error) {
+                console.error('Upload error:', error);
+                document.getElementById('uploadResult').innerHTML = `
+                    <p style="color: red;">❌ Upload error: ${error.message}</p>
+                `;
+            }
+        }
+        
+        async function createGallery() {
+            if (!uploadedFileId) {
+                alert('Please upload an image first');
+                return;
+            }
+            
+            const title = document.getElementById('galleryTitle').value;
+            const description = document.getElementById('galleryDescription').value;
+            
+            const galleryData = {
+                contentType: 'gallery',
+                title: title,
+                description: description,
+                category: 'test',
+                status: 'published',
+                galleryItems: [uploadedFileId]
+            };
+            
+            try {
+                const response = await fetch('http://localhost:5000/api/content', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(galleryData)
+                });
+                
+                const result = await response.json();
+                console.log('Gallery creation result:', result);
+                
+                if (result.success) {
+                    document.getElementById('galleryResult').innerHTML = `
+                        <p style="color: green;">✅ Gallery created successfully!</p>
+                        <p>Gallery ID: ${result.data._id}</p>
+                        <p>Items: ${result.data.items ? result.data.items.length : 0}</p>
+                    `;
+                } else {
+                    document.getElementById('galleryResult').innerHTML = `
+                        <p style="color: red;">❌ Gallery creation failed: ${result.message}</p>
+                    `;
+                }
+            } catch (error) {
+                console.error('Gallery creation error:', error);
+                document.getElementById('galleryResult').innerHTML = `
+                    <p style="color: red;">❌ Gallery creation error: ${error.message}</p>
+                `;
+            }
+        }
+        
+        async function testFileServing() {
+            const fileId = document.getElementById('fileIdInput').value;
+            
+            if (!fileId) {
+                alert('Please enter a file ID');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`http://localhost:5000/api/files/${fileId}`);
+                
+                if (response.ok) {
+                    document.getElementById('fileResult').innerHTML = `
+                        <p style="color: green;">✅ File serving works!</p>
+                        <p>File ID: ${fileId}</p>
+                        <p>Status: ${response.status}</p>
+                    `;
+                } else {
+                    document.getElementById('fileResult').innerHTML = `
+                        <p style="color: red;">❌ File serving failed: ${response.status}</p>
+                    `;
+                }
+            } catch (error) {
+                console.error('File serving error:', error);
+                document.getElementById('fileResult').innerHTML = `
+                    <p style="color: red;">❌ File serving error: ${error.message}</p>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

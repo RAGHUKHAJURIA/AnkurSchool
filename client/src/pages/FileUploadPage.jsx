@@ -19,7 +19,7 @@ const FileUploadPage = () => {
     const downloadFile = async (fileId, filename) => {
         try {
             const response = await axios.get(
-                `https://ankurschool-v6d0.onrender.com/api/files/download/${fileId}`,
+                `http://localhost:5000/api/files/download/${fileId}`,
                 { responseType: 'blob' }
             );
 
@@ -40,7 +40,7 @@ const FileUploadPage = () => {
     const deleteFile = async (fileId) => {
         if (window.confirm('Are you sure you want to delete this file?')) {
             try {
-                await axios.delete(`https://ankurschool-v6d0.onrender.com/api/files/${fileId}`);
+                await axios.delete(`http://localhost:5000/api/files/${fileId}`);
                 setUploadedFiles(prev => prev.filter(file => file.fileId !== fileId));
                 alert('File deleted successfully');
             } catch (error) {

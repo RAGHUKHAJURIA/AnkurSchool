@@ -44,7 +44,7 @@ const AddStudent = ({ onClose, onStudentAdded }) => {
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
 
-    const backendUrl = 'https://ankurschool-v6d0.onrender.com'
+    const backendUrl = 'http://localhost:5000'
 
     const calculateAge = (dateOfBirth) => {
         if (!dateOfBirth) return '';
@@ -126,7 +126,7 @@ const AddStudent = ({ onClose, onStudentAdded }) => {
 
             console.log('Submitting student data:', submissionData);
 
-            const response = await axios.post(`https://ankurschool-v6d0.onrender.com/api/admin/add-student`, submissionData, {
+            const response = await axios.post(`http://localhost:5000/api/admin/add-student`, submissionData, {
                 headers: {
                     'Content-Type': 'application/json'
                 }

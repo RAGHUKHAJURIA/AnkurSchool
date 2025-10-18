@@ -100,11 +100,11 @@ const FileUpload = ({
                 formData.append('category', category);
                 formData.append('description', description);
 
-                console.log('Uploading multiple files to:', `https://ankurschool-v6d0.onrender.com/api/files/upload-multiple`);
+                console.log('Uploading multiple files to:', `http://localhost:5000/api/files/upload-multiple`);
                 console.log('FormData contents:', Array.from(formData.entries()));
 
                 const response = await axios.post(
-                    `https://ankurschool-v6d0.onrender.com/api/files/upload-multiple`,
+                    `http://localhost:5000/api/files/upload-multiple`,
                     formData,
                     {
                         headers: {
@@ -124,7 +124,7 @@ const FileUpload = ({
                     formData.append('description', description);
 
                     const response = await axios.post(
-                        `https://ankurschool-v6d0.onrender.com/api/files/upload`,
+                        `http://localhost:5000/api/files/upload`,
                         formData,
                         {
                             headers: {
