@@ -364,6 +364,28 @@ testRouter.post('/check-admin-status', async (req, res) => {
     }
 });
 
+// Test file serving
+testRouter.get('/serve-file/:fileId', async (req, res) => {
+    try {
+        const { fileId } = req.params;
+        console.log("Test file serving for:", fileId);
+
+        // Import the getFile function
+        const { getFile } = await import('../controller/fileController.js');
+
+        // Call the getFile function
+        await getFile(req, res);
+
+    } catch (error) {
+        console.error('Test file serving error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Test file serving failed',
+            error: error.message
+        });
+    }
+});
+
 // Debug admin authentication
 testRouter.post('/debug-admin-auth', async (req, res) => {
     try {

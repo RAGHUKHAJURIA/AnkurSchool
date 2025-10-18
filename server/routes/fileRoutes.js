@@ -19,6 +19,7 @@ fileRouter.post('/upload-multiple', uploadMultiple, uploadMultipleFiles, handleU
 
 // File management routes
 fileRouter.get('/list', getAllFiles);
+fileRouter.get('/info/:fileId', getFileInfo);
 fileRouter.get('/:fileId', getFile);
 fileRouter.get('/download/:fileId', downloadFile);
 fileRouter.delete('/:fileId', deleteFile);

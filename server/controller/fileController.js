@@ -1,5 +1,7 @@
 import multer from 'multer';
-import { uploadToGridFS, downloadFromGridFS, getFileInfo, deleteFromGridFS, listFiles } from '../config/gridfs.js';
+import { uploadToGridFS, downloadFromGridFS, getFileInfo as getFileInfoFromGridFS, deleteFromGridFS, listFiles } from '../config/gridfs.js';
+import mongoose from 'mongoose';
+import { GridFSBucket, ObjectId } from "mongodb";
 
 // Configure multer for memory storage
 const storage = multer.memoryStorage();
@@ -189,61 +191,118 @@ import mongoose from "mongoose";
 import { GridFSBucket, ObjectId } from "mongodb";
 
 export const downloadFile = async (req, res) => {
-  try {
-    const { fileId } = req.params;
-    console.log("File download request for:", fileId);
+    try {
+        const { fileId } = req.params;
+        console.log("File download request for:", fileId);
 
-    if (!fileId) {
-      return res.status(400).json({ success: false, message: "File ID is required" });
+        if (!fileId) {
+            return res.status(400).json({ success: false, message: "File ID is required" });
+        }
+
+        // Ensure valid ObjectId
+        const objectId = new ObjectId(fileId);
+
+        // Use existing Mongoose connection (from connectDB)
+        const db = mongoose.connection.db;
+        const bucket = new GridFSBucket(db, { bucketName: "uploads" });
+
+        // Fetch file info
+        const filesCollection = db.collection("uploads.files");
+        const fileInfo = await filesCollection.findOne({ _id: objectId });
+
+        if (!fileInfo) {
+            console.log("File not found in GridFS");
+            return res.status(404).json({ success: false, message: "File not found" });
+        }
+
+        // Set headers before streaming
+        res.set({
+            "Content-Type": fileInfo.metadata?.mimetype || fileInfo.contentType || "application/octet-stream",
+            "Content-Disposition": `inline; filename="${fileInfo.filename}"`,
+            "Cache-Control": "public, max-age=31536000",
+        });
+
+        // Stream file directly to response
+        const downloadStream = bucket.openDownloadStream(objectId);
+        downloadStream.pipe(res);
+
+        downloadStream.on("error", (err) => {
+            console.error("GridFS stream error:", err);
+            if (!res.headersSent) res.status(500).json({ success: false, message: "Error reading file" });
+        });
+
+        downloadStream.on("end", () => {
+            console.log("File streamed successfully:", fileId);
+        });
+
+    } catch (error) {
+        console.error("File download error:", error);
+        if (!res.headersSent) {
+            res.status(500).json({ success: false, message: "File download failed", error: error.message });
+        }
     }
-
-    // Ensure valid ObjectId
-    const objectId = new ObjectId(fileId);
-
-    // Use existing Mongoose connection (from connectDB)
-    const db = mongoose.connection.db;
-    const bucket = new GridFSBucket(db, { bucketName: "uploads" });
-
-    // Fetch file info
-    const filesCollection = db.collection("uploads.files");
-    const fileInfo = await filesCollection.findOne({ _id: objectId });
-
-    if (!fileInfo) {
-      console.log("File not found in GridFS");
-      return res.status(404).json({ success: false, message: "File not found" });
-    }
-
-    // Set headers before streaming
-    res.set({
-      "Content-Type": fileInfo.metadata?.mimetype || fileInfo.contentType || "application/octet-stream",
-      "Content-Disposition": `inline; filename="${fileInfo.filename}"`,
-      "Cache-Control": "public, max-age=31536000",
-    });
-
-    // Stream file directly to response
-    const downloadStream = bucket.openDownloadStream(objectId);
-    downloadStream.pipe(res);
-
-    downloadStream.on("error", (err) => {
-      console.error("GridFS stream error:", err);
-      if (!res.headersSent) res.status(500).json({ success: false, message: "Error reading file" });
-    });
-
-    downloadStream.on("end", () => {
-      console.log("File streamed successfully:", fileId);
-    });
-
-  } catch (error) {
-    console.error("File download error:", error);
-    if (!res.headersSent) {
-      res.status(500).json({ success: false, message: "File download failed", error: error.message });
-    }
-  }
 };
 
 
-// Get file info
+// Serve file content (for images, etc.)
 export const getFile = async (req, res) => {
+    try {
+        const { fileId } = req.params;
+        console.log("File serving request for:", fileId);
+
+        if (!fileId) {
+            return res.status(400).json({
+                success: false,
+                message: 'File ID is required'
+            });
+        }
+
+        // Ensure valid ObjectId
+        const objectId = new ObjectId(fileId);
+
+        // Use existing Mongoose connection (from connectDB)
+        const db = mongoose.connection.db;
+        const bucket = new GridFSBucket(db, { bucketName: "uploads" });
+
+        // Fetch file info
+        const filesCollection = db.collection("uploads.files");
+        const fileInfo = await filesCollection.findOne({ _id: objectId });
+
+        if (!fileInfo) {
+            console.log("File not found in GridFS");
+            return res.status(404).json({ success: false, message: "File not found" });
+        }
+
+        // Set headers before streaming
+        res.set({
+            "Content-Type": fileInfo.metadata?.mimetype || fileInfo.contentType || "application/octet-stream",
+            "Content-Disposition": `inline; filename="${fileInfo.filename}"`,
+            "Cache-Control": "public, max-age=31536000",
+        });
+
+        // Stream file directly to response
+        const downloadStream = bucket.openDownloadStream(objectId);
+        downloadStream.pipe(res);
+
+        downloadStream.on("error", (err) => {
+            console.error("GridFS stream error:", err);
+            if (!res.headersSent) res.status(500).json({ success: false, message: "Error reading file" });
+        });
+
+        downloadStream.on("end", () => {
+            console.log("File streamed successfully:", fileId);
+        });
+
+    } catch (error) {
+        console.error("File serving error:", error);
+        if (!res.headersSent) {
+            res.status(500).json({ success: false, message: "File serving failed", error: error.message });
+        }
+    }
+};
+
+// Get file info (separate function for metadata)
+export const getFileInfo = async (req, res) => {
     try {
         const { fileId } = req.params;
 
@@ -254,7 +313,7 @@ export const getFile = async (req, res) => {
             });
         }
 
-        const fileInfo = await getFileInfo(fileId);
+        const fileInfo = await getFileInfoFromGridFS(fileId);
 
         if (!fileInfo) {
             return res.status(404).json({
