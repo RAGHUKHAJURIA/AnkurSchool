@@ -187,9 +187,6 @@ export const uploadMultipleFiles = async (req, res) => {
 // };
 
 
-import mongoose from "mongoose";
-import { GridFSBucket, ObjectId } from "mongodb";
-
 export const downloadFile = async (req, res) => {
     try {
         const { fileId } = req.params;
