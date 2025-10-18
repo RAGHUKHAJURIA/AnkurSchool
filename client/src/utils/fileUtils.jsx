@@ -12,7 +12,7 @@ export const getFileUrl = (fileId) => {
         console.log('getFileUrl: No fileId provided');
         return null;
     }
-    const url = `https://ankurschool-v6d0.onrender.com/api/files/download/${fileId}`;
+    const url = `https://ankurschool-v6d0.onrender.com/api/files/${fileId}`;
     console.log('Generated file URL:', url, 'for fileId:', fileId);
     return url;
 };
