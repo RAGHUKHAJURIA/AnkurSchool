@@ -44,7 +44,7 @@ const AdminNavbar = () => {
                             <School className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
                         </div>
                         <div className="flex flex-col">
-                            <span className="text-white text-base sm:text-lg lg:text-xl font-bold group-hover:text-blue-200 transition-colors duration-300">Ankur School</span>
+                            <span className="text-white text-base sm:text-lg lg:text-xl font-bold group-hover:text-blue-200 transition-colors duration-300">Attainers</span>
                             <span className="text-slate-300 text-xs sm:text-sm font-medium hidden sm:block">Admin Panel</span>
                         </div>
                     </Link>
