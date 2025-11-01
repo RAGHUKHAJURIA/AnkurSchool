@@ -87,14 +87,45 @@ const AdminAuthRedirect = ({ children }) => {
                     // Get the session token using useAuth hook
                     const token = await getToken();
 
+                    if (!token) {
+                        throw new Error('No authentication token available');
+                    }
+
+                    // Create timeout controller for fetch
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+
                     // Call backend to check admin role
-                    const response = await fetch(`${backendUrl}/api/auth/check-admin`, {
-                        method: 'GET',
-                        headers: {
-                            'Authorization': `Bearer ${token}`,
-                            'Content-Type': 'application/json',
-                        },
-                    });
+                    let response;
+                    try {
+                        response = await fetch(`${backendUrl}/api/auth/check-admin`, {
+                            method: 'GET',
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'application/json',
+                            },
+                            signal: controller.signal,
+                        });
+                    } catch (fetchError) {
+                        clearTimeout(timeoutId);
+                        if (fetchError.name === 'AbortError') {
+                            throw new Error('Request timeout - backend server may be slow or unavailable');
+                        }
+                        throw new Error(`Network error: ${fetchError.message}`);
+                    } finally {
+                        clearTimeout(timeoutId);
+                    }
+
+                    // Check if response is ok
+                    if (!response.ok) {
+                        let errorText = '';
+                        try {
+                            errorText = await response.text();
+                        } catch (e) {
+                            errorText = response.statusText;
+                        }
+                        throw new Error(`HTTP ${response.status}: ${errorText || response.statusText}`);
+                    }
 
                     const data = await response.json();
 
@@ -129,14 +160,27 @@ const AdminAuthRedirect = ({ children }) => {
                     setHasChecked(true);
                 } catch (error) {
                     console.error('Error checking admin status:', error);
+                    console.error('Backend URL:', backendUrl);
+                    console.error('Error details:', {
+                        name: error.name,
+                        message: error.message,
+                        stack: error.stack
+                    });
 
                     // On error, don't cache - treat as unknown
+                    // But don't redirect if user is already on a non-admin route
                     setIsAdmin(null);
 
-                    // If error and trying to access admin routes, redirect to home for safety
+                    // Only redirect if user is trying to access admin routes and we got an error
+                    // Allow access to other routes even if check fails
                     if (isOnAdminRoute) {
+                        console.warn('Admin check failed, redirecting from admin routes for safety');
                         navigate('/', { replace: true });
+                    } else {
+                        // If not on admin route, allow access but log the error
+                        console.warn('Admin check failed, but user is not on admin route - allowing access');
                     }
+
                     setHasChecked(true);
                 } finally {
                     setIsChecking(false);
