@@ -69,7 +69,6 @@ const AdminAuthRedirect = ({ children }) => {
                     if (cachedIsAdmin) {
                         // Auto-redirect admin to /admin if not already there (only on first check)
                         if (!isOnAdminRoute && !hasChecked) {
-                            console.log('Auto-redirecting admin to dashboard...');
                             navigate('/admin', { replace: true });
                         }
                     } else if (isOnAdminRoute) {
@@ -130,7 +129,6 @@ const AdminAuthRedirect = ({ children }) => {
                     const data = await response.json();
 
                     if (data.success && data.isAdmin) {
-                        console.log('Admin user detected:', data.user);
                         setIsAdmin(true);
 
                         // Cache the admin status
@@ -139,7 +137,6 @@ const AdminAuthRedirect = ({ children }) => {
 
                         // Auto-redirect admin to /admin if not already there (only on initial login)
                         if (!isOnAdminRoute && !hasChecked) {
-                            console.log('Auto-redirecting admin to dashboard...');
                             navigate('/admin', { replace: true });
                         }
                     } else {
