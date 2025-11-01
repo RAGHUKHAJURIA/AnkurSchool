@@ -19,6 +19,7 @@ import {
   adminSecurityHeaders,
   adminAccessLogger
 } from './middleware/authMiddleware.js';
+import authRoutes from './routes/authRoutes.js';
 
 // Load environment variables
 dotenv.config();
@@ -52,6 +53,7 @@ app.post("/clerk", express.raw({ type: "application/json" }), clerkWebhooks);
 
 app.use('/api/files', fileRouter);
 
+
 // --- Core middleware ---
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
@@ -62,6 +64,7 @@ app.get('/', (req, res) => {
 });
 
 // --- Main routes ---
+app.use('/api/auth', authRoutes);
 app.use('/api/students', studentRouter);
 app.use('/api/payments', paymentRouter);
 

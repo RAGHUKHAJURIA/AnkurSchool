@@ -82,23 +82,28 @@ export const requireAdminAuth = async (req, res, next) => {
             });
         }
 
-        // Check if user exists in our database
-        let dbUser = await User.findOne({ externalId: clerkUserId });
-
-        // If user not found, try to find by email (fallback for deployment issues)
-        if (!dbUser) {
+        // Get user email from Clerk first (primary method for admin check)
+        let userEmail = null;
+        if (process.env.CLERK_SECRET_KEY) {
             try {
-                // Try to get user info from Clerk to find by email
-                if (process.env.CLERK_SECRET_KEY) {
-                    const clerkUser = await clerkClient.users.getUser(clerkUserId);
-                    if (clerkUser && clerkUser.emailAddresses && clerkUser.emailAddresses.length > 0) {
-                        const email = clerkUser.emailAddresses[0].emailAddress;
-                        dbUser = await User.findOne({ email: email });
-                    }
+                const clerkUser = await clerkClient.users.getUser(clerkUserId);
+                if (clerkUser && clerkUser.emailAddresses && clerkUser.emailAddresses.length > 0) {
+                    userEmail = clerkUser.emailAddresses[0].emailAddress.toLowerCase();
                 }
             } catch (e) {
-                // Clerk lookup failed, continue with error
+                console.error('Error fetching Clerk user in middleware:', e);
             }
+        }
+
+        // PRIMARY CHECK: Check by email if we have it (most reliable)
+        let dbUser = null;
+        if (userEmail) {
+            dbUser = await User.findOne({ email: userEmail.toLowerCase() });
+        }
+
+        // FALLBACK: Check by externalId if email check didn't find user
+        if (!dbUser) {
+            dbUser = await User.findOne({ externalId: clerkUserId });
         }
 
         if (!dbUser) {
@@ -108,6 +113,7 @@ export const requireAdminAuth = async (req, res, next) => {
                 error: 'User not found in database',
                 debug: {
                     clerkUserId: clerkUserId,
+                    userEmail: userEmail,
                     suggestion: 'Please ensure user is registered and has admin role'
                 }
             });
@@ -122,6 +128,7 @@ export const requireAdminAuth = async (req, res, next) => {
                 debug: {
                     userRole: dbUser.role,
                     requiredRole: 'admin',
+                    userEmail: dbUser.email,
                     suggestion: 'Contact administrator to grant admin access'
                 }
             });
