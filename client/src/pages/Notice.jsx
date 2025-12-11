@@ -23,6 +23,7 @@ import {
 import Navbar from '../components/Navbar'
 import { getFileUrl, getDownloadUrl, handleFileDownload, handleFileView, getFileIcon } from '../utils/fileUtils.jsx'
 import { AppContext } from '../context/AppContext'
+import { jsPDF } from 'jspdf';
 
 const Notice = () => {
   const [notices, setNotices] = useState([])
@@ -215,6 +216,67 @@ const Notice = () => {
 
   const handleViewFile = (fileId) => {
     handleFileView(fileId);
+  };
+
+  const downloadNoticeAsPDF = (notice) => {
+    const doc = new jsPDF();
+
+    // Header
+    doc.setFillColor(37, 99, 235); // Blue color
+    doc.rect(0, 0, 210, 40, 'F');
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(24);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Ankur School', 105, 20, { align: 'center' });
+
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'normal');
+    doc.text('OFFICIAL NOTICE', 105, 32, { align: 'center' });
+
+    // Reset text color for content
+    doc.setTextColor(0, 0, 0);
+
+    // Title
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    const titleLines = doc.splitTextToSize(notice.title, 170);
+    doc.text(titleLines, 20, 60);
+
+    let yPos = 60 + (titleLines.length * 10);
+
+    // Meta Info
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100, 100, 100);
+
+    doc.text(`Date: ${formatDate(notice.createdAt)}`, 20, yPos);
+    doc.text(`Priority: ${notice.priority.toUpperCase()}`, 100, yPos);
+    doc.text(`Audience: ${notice.audience.toUpperCase()}`, 160, yPos);
+
+    // Line separator
+    yPos += 10;
+    doc.setDrawColor(200, 200, 200);
+    doc.line(20, yPos, 190, yPos);
+
+    // Body
+    yPos += 15;
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    doc.setFont('helvetica', 'normal');
+
+    // Split text to fit page width
+    const bodyLines = doc.splitTextToSize(notice.body, 170);
+    doc.text(bodyLines, 20, yPos);
+
+    // Footer
+    const pageHeight = doc.internal.pageSize.height;
+    doc.setFontSize(8);
+    doc.setTextColor(150, 150, 150);
+    doc.text('Generated from Ankur School Admin Portal', 105, pageHeight - 10, { align: 'center' });
+
+    // Save
+    doc.save(`${notice.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_notice.pdf`);
   };
 
   return (
@@ -450,6 +512,15 @@ const Notice = () => {
                             </button>
                           </div>
                         )}
+
+                        <button
+                          onClick={() => downloadNoticeAsPDF(notice)}
+                          className="ml-auto flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700 transition-colors"
+                          title="Download Notice as PDF"
+                        >
+                          <Download className="w-4 h-4" />
+                          <span className="hidden sm:inline">Save as PDF</span>
+                        </button>
                       </div>
                     </div>
                   </motion.div>

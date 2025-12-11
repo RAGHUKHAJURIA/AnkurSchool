@@ -13,7 +13,6 @@ export const getFileUrl = (fileId) => {
         return null;
     }
     const url = `https://ankurschool-v6d0.onrender.com/api/files/${fileId}`;
-    console.log('Generated file URL:', url, 'for fileId:', fileId);
     return url;
 };
 
@@ -39,7 +38,6 @@ export const handleFileDownload = async (fileId, originalName, attachmentId, set
         setDownloading(attachmentId);
 
         const downloadUrl = getDownloadUrl(fileId);
-        console.log('Attempting to download:', downloadUrl);
 
         const response = await fetch(downloadUrl, {
             method: 'GET',
@@ -68,7 +66,6 @@ export const handleFileDownload = async (fileId, originalName, attachmentId, set
         // Clean up
         window.URL.revokeObjectURL(downloadLink);
 
-        console.log('Download successful');
         setTimeout(() => setDownloading(null), 1500);
 
     } catch (error) {

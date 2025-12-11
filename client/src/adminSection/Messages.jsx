@@ -143,16 +143,11 @@ const Messages = () => {
         });
     };
 
-    if (loading) {
-        return (
-            <div className="admin-page">
-                <div className="admin-loading">
-                    <div className="admin-loading-spinner"></div>
-                    <div className="admin-loading-text">Loading messages...</div>
-                </div>
-            </div>
-        );
-    }
+    return (
+        <div className="admin-page min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
+            <div className="w-12 h-12 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin"></div>
+        </div>
+    );
 
     return (
         <div className="admin-page">

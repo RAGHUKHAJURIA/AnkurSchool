@@ -14,7 +14,9 @@ import {
     User,
     LogIn,
     UserPlus,
+    LayoutDashboard,
 } from "lucide-react";
+import { useAdminAuthSimple } from "../hooks/useAdminAuthSimple";
 import {
     Navbar,
     NavBody,
@@ -32,6 +34,7 @@ const ModernNavbar = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isMoreOpen, setIsMoreOpen] = useState(false);
     const { isSignedIn, user } = useUser();
+    const { isAdmin } = useAdminAuthSimple();
 
     const menuItems = [
         { name: "Home", path: "/" },
@@ -129,6 +132,19 @@ const ModernNavbar = () => {
                             )}
                         </div>
 
+
+
+                        {/* Admin View Button (Desktop) */}
+                        {isSignedIn && isAdmin && (
+                            <Link
+                                to="/admin"
+                                className="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-xl text-yellow-500 bg-yellow-500/10 hover:bg-yellow-500/20 border border-yellow-500/20 transition-all duration-300"
+                            >
+                                <LayoutDashboard className="w-4 h-4" />
+                                <span>Admin View</span>
+                            </Link>
+                        )}
+
                     </div>
 
                     {/* Auth Buttons (Desktop) */}
@@ -203,6 +219,18 @@ const ModernNavbar = () => {
                             </Link>
                         ))}
 
+                        {/* Admin View Button (Mobile) */}
+                        {isSignedIn && isAdmin && (
+                            <Link
+                                to="/admin"
+                                onClick={() => setIsMenuOpen(false)}
+                                className="flex items-center gap-2 px-4 py-3 text-sm font-semibold rounded-xl text-yellow-500 bg-yellow-500/10 active:bg-yellow-500/20 border border-yellow-500/20 transition-all duration-300"
+                            >
+                                <LayoutDashboard className="w-5 h-5" />
+                                <span>Admin View</span>
+                            </Link>
+                        )}
+
                         <div className="flex flex-col gap-4 mt-6">
                             {isSignedIn ? (
                                 <div className="flex items-center justify-between bg-slate-800/50 rounded-xl p-4">
@@ -244,7 +272,7 @@ const ModernNavbar = () => {
                     </MobileNavMenu>
                 </MobileNav>
             </Navbar>
-        </div>
+        </div >
     );
 };
 

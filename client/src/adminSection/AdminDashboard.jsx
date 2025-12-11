@@ -11,7 +11,8 @@ import {
     ArrowRight,
     BarChart3,
     Settings,
-    Bell
+    Bell,
+    Home
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAdminAuthSimple } from '../hooks/useAdminAuthSimple.jsx';
@@ -207,11 +208,8 @@ const AdminDashboard = () => {
 
     if (loading) {
         return (
-            <div className="admin-page min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
-                <div className="admin-loading text-center">
-                    <div className="admin-loading-spinner mx-auto"></div>
-                    <p className="admin-loading-text">Loading dashboard...</p>
-                </div>
+            <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center p-4">
+                <div className="w-12 h-12 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin"></div>
             </div>
         );
     }
@@ -227,13 +225,13 @@ const AdminDashboard = () => {
                             <p className="text-base sm:text-lg md:text-xl text-slate-600">Manage your school administration efficiently</p>
                         </div>
                         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4 animate-slide-up delay-200 w-full sm:w-auto">
-                            <button className="btn-secondary flex items-center justify-center gap-2 text-sm sm:text-base">
-                                <Bell className="w-4 h-4 sm:w-5 sm:h-5" />
-                                <span className="hidden sm:inline">Notifications</span>
-                            </button>
-                            <button className="btn-secondary flex items-center justify-center gap-2 text-sm sm:text-base">
-                                <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
-                                <span className="hidden sm:inline">Settings</span>
+                            <button
+                                onClick={() => navigate('/')}
+                                className="btn-secondary flex items-center justify-center gap-2 text-sm sm:text-base hover:bg-slate-200 transition-colors"
+                                title="Switch to User View"
+                            >
+                                <Home className="w-4 h-4 sm:w-5 sm:h-5" />
+                                <span className="hidden sm:inline">User View</span>
                             </button>
                         </div>
                     </div>

@@ -45,20 +45,14 @@ const Gallery = () => {
 
           if (Array.isArray(responseData)) {
             // If the API returns an array directly
-            console.log('Gallery data (array):', responseData);
             setGalleries(responseData);
           } else if (responseData.data && Array.isArray(responseData.data)) {
             // If the API returns { data: [...] }
-            console.log('Gallery data:', responseData.data);
-            console.log('First gallery item:', responseData.data[0]);
             if (responseData.data[0]) {
-              console.log('First gallery coverImage:', responseData.data[0].coverImage);
-              console.log('First gallery items:', responseData.data[0].items);
             }
             setGalleries(responseData.data);
           } else if (responseData.galleries && Array.isArray(responseData.galleries)) {
             // If the API returns { galleries: [...] }
-            console.log('Gallery data (galleries):', responseData.galleries);
             setGalleries(responseData.galleries);
           } else {
             console.error('Unexpected API response structure:', responseData);
@@ -270,14 +264,10 @@ const Gallery = () => {
                             alt={gallery.title || 'Gallery image'}
                             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                             onError={(e) => {
-                              console.error('Image failed to load:', e.target.src);
-                              console.error('Gallery data:', gallery);
-                              console.error('Cover image ID:', coverImageId);
-                              console.error('Generated URL:', getFileUrl(coverImageId));
-                              console.error('Gallery items:', gallery.items);
+                              // Image failed to load
                             }}
                             onLoad={() => {
-                              console.log('Image loaded successfully:', getFileUrl(coverImageId));
+                              // Image loaded successfully
                             }}
                           />
                         );
